@@ -7,6 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Duration;
+
 @ConfigurationProperties(prefix = "rate.limiting")
 @Component
 @Data
@@ -17,6 +19,6 @@ public class RateLimitingProperties {
     boolean enabled;
     long capacity;
     long refill;
-    long period;
+    Duration refillPeriod;
 }
 

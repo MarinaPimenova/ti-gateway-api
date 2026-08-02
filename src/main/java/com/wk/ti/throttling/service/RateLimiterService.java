@@ -5,7 +5,6 @@ import io.github.bucket4j.*;
 
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("deprecation")
@@ -30,7 +29,7 @@ public class RateLimiterService {
                                         properties.getCapacity(),
                                         Refill.greedy(
                                                 properties.getRefill(),
-                                                Duration.ofMinutes(properties.getPeriod())
+                                                properties.getRefillPeriod()
                                         )
                                 )
                         )

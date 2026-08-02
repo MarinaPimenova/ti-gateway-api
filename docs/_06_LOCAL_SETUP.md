@@ -365,7 +365,7 @@ spring:
 
     username: knowledge_user
 
-    password: password
+    password: qwerty
 ```
 
 ---

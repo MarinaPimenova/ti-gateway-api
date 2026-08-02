@@ -75,13 +75,16 @@ management:
     health:
       show-details: never
 
-
 rate:
   limiting:
     enabled: ${LP_RATE_LIMITING_ENABLED:true}
     capacity: ${LP_RATE_LIMITING_CAPACITY:100}
     refill: ${LP_RATE_LIMITING_REFILL:100}
-    period: ${LP_RATE_LIMITING_PERIOD:1}   # minutes
+    refill-period: ${LP_RATE_LIMITING_PERIOD:1m}   # minutes
+    exclude:
+      - /actuator/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
 
 ms:
   cors:

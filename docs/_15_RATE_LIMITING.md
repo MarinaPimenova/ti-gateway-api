@@ -394,3 +394,13 @@ Possible improvements include:
     - `X-Rate-Limit-Reset`
 - Monitoring using Spring Boot Actuator and Micrometer.
 - Dashboard showing rejected requests and rate limiting statistics.
+
+| Aspect                 | Current                    | Recommendation                                                   |
+| ---------------------- | -------------------------- | ---------------------------------------------------------------- |
+| Enable/disable         | ✅ Good                     | Keep                                                             |
+| Capacity               | ✅ Good                     | Keep                                                             |
+| Refill                 | ✅ Good                     | Keep                                                             |
+| Excluded paths         | ❌ Missing                  | Add for actuator and Swagger endpoints                           |
+| Key strategy           | ❌ Fixed in code            | Optional configuration if future flexibility is desired          |
+| Per-user/IP support    | ✅ Supported by your filter | Keep                                                             |
+| Distributed deployment | ⚠️ In-memory only          | Replace bucket storage with Redis for multi-instance deployments |
