@@ -1,0 +1,60 @@
+services:
+  redis-session:
+    container_name: ti-redis-session
+    image: redis:latest
+    command: redis-server
+    volumes:
+      - ./redis:/data
+    ports:
+      - "6379:6379"
+
+  grafana-lgtm:
+    container_name: ti-grafana-dashboard
+    image: 'grafana/otel-lgtm:latest'
+    ports:
+      - "3000:3000"
+      - "4317"
+      - "4318"
+  zipkin:
+    container_name: ti-zipkin-tracing
+    image: 'openzipkin/zipkin:latest'
+    ports:
+      # Exposes the Zipkin HTTP collector and Web UI
+      - "9411:9411"
+    environment:
+      # Optional: Adjust memory limits if needed
+      - JAVA_OPTS=-Xms512m -Xmx512m
+
+  rabbitmq:
+    container_name: ti-rabbitmq-orchestrator
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RM_USER}
+      RABBITMQ_DEFAULT_PASS: ${RM_PASSWORD}
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: >-
+        -rabbit log_levels [{connection,error},{default,error}]
+        disk_free_limit 2147483648
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  postgres-knowledge:
+    container_name: postgres-knowledge-14
+    image: postgres:14.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./assistant-sql:/docker-entrypoint-initdb.d
+      - ./assistant-db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  rabbitmq-data:

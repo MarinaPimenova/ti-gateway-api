@@ -1,0 +1,9 @@
+services:
+  redis-session:
+    container_name: ti-redis-session
+    image: redis:latest
+    command: redis-server
+    volumes:
+      - ./redis:/data
+    ports:
+      - "6379:6379"

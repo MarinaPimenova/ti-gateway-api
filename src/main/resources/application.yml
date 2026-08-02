@@ -1,0 +1,117 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+    session:
+      timeout: 3600 # redefine default 30m by 1 hour
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+app:
+  authorization-request-timeout: 10 # min
+  #auth-callback: http://localhost:${server.port}
+  application-url: "${APPLICATION_URL:http://localhost:8080}"
+  logout-url: "${LOGOUT_URL:http://localhost:8080/logout}"
+
+logging:
+  level:
+    com.training: debug
+    org.springframework: info
+
+info:
+  app:
+    name: ti-gateway-api
+    version: '@project.version@'
+
+spring:
+  application:
+    name: ${info.app.name}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      resolve-lazily: false
+      enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          okta:
+            provider: okta
+            authorization-grant-type: authorization_code
+            scope: openid
+            client-id: ${OKTA_OAUTH2_CLIENT_ID}
+            client-secret: ${OKTA_OAUTH2_CLIENT_SECRET}
+            redirect-uri: ${app.application-url}/login/oauth2/code/okta
+        provider:
+          okta:
+            issuer-uri: https://${OKTA_OAUTH2_ISSUER}/
+  data:
+    redis:
+      ssl:
+        enabled: ${SESSION_SSL_ENABLED:false}
+      host: ${SESSION_CACHE_HOST:127.0.0.1}
+      port: ${SESSION_CACHE_PORT:6379}
+  session:
+    store-type: redis
+    redis:
+      flush-mode: on_save
+      namespace: spring:session
+  # spring.mvc.pathmatch.matching-strategy=ant_path_matcher
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+okta:
+  logout-url: https://${OKTA_OAUTH2_ISSUER}/logout
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: never
+
+
+rate:
+  limiting:
+    enabled: ${LP_RATE_LIMITING_ENABLED:true}
+    capacity: ${LP_RATE_LIMITING_CAPACITY:100}
+    refill: ${LP_RATE_LIMITING_REFILL:100}
+    period: ${LP_RATE_LIMITING_PERIOD:1}   # minutes
+
+ms:
+  cors:
+    allowed-origins: ${ms.services.dashboard-base-url}
+  origin: ${APPLICATION_URL:http://localhost:8080}
+  services:
+    onboard-path: "${ONBOARD_PATH:/page/onboard}"
+    dashboard-base-url: "${DASHBOARD_BASE_URL:http://localhost:3000}"
+  client-to-url:
+    dashboard-url: "${DASHBOARD_URL:http://localhost:3000/dashboard-page}"
+    s2s-url: "${S2S_PAGE_URL:http://localhost:5000/s2s-page}"
+  service-name-to-uri:
+    knowledge: http://${KNOWLEDGE_SERVICE:localhost}:${KNOWLEDGE_SERVICE_PORT:8081}
+    orchestrator: http://${ORCHESTRATOR_SERVICE:localhost}:${ORCHESTRATOR_SERVICE_PORT:8082}
+    import: http://${IMPORT_SERVICE:localhost}:${IMPORT_SERVICE_PORT:8083}
+    export: http://${EXPORT_SERVICE:localhost}:${EXPORT_SERVICE_PORT:8084}
+    notification: http://${NOTIFICATION_SERVICE:localhost}:${NOTIFICATION_SERVICE_PORT:8085}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    urls:
+      - name: Knowledge Service
+        url: "${ms.origin}/knowledge/v3/api-docs"
+      - name: Orchestrator Service
+        url: "${ms.origin}/orchestrator/v3/api-docs"
+      - name: Import Service
+        url: "${ms.origin}/import/v3/api-docs"
+      - name: Export Service
+        url: "${ms.origin}/export/v3/api-docs"
+      - name: Notification Service
+        url: "${ms.origin}/notification/v3/api-docs"
