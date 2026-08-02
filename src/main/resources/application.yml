@@ -105,13 +105,13 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     urls:
-      - name: Knowledge Service
+      - name: "01 - Knowledge Service"
         url: "${ms.origin}/knowledge/v3/api-docs"
-      - name: Orchestrator Service
+      - name: "02 - Orchestrator Service"
         url: "${ms.origin}/orchestrator/v3/api-docs"
-      - name: Import Service
+      - name: "03 - Import Service"
         url: "${ms.origin}/import/v3/api-docs"
-      - name: Export Service
+      - name: "04 - Export Service"
         url: "${ms.origin}/export/v3/api-docs"
-      - name: Notification Service
+      - name: "05 - Notification Service"
         url: "${ms.origin}/notification/v3/api-docs"
