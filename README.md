@@ -476,3 +476,138 @@ After completing the implementation you will have a portfolio-ready microservice
 - Observability
 - Resilience
 - Best Practices for Microservices
+
+# Knowledge DB schema
+
+```mermaid
+erDiagram
+
+    PROJECT {
+        bigint id PK
+        varchar project_name
+        varchar project_lead
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    QUESTION_LEVEL {
+        bigint id PK
+        varchar code
+        varchar description
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    KNOWLEDGE_CATEGORY {
+        bigint id PK
+        varchar category
+        varchar description
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    KNOWLEDGE_TAG {
+        bigint id PK
+        bigint knowledge_category_id FK
+        varchar tag
+        varchar description
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    QUESTION {
+        bigint id PK
+        bigint question_level_id FK
+        text question
+        text short_answer
+        text detailed_answer
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    RESOURCE {
+        bigint id PK
+        varchar description
+        varchar resource_url
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    CODE_EXAMPLE {
+        bigint id PK
+        varchar language
+        text source_code
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    QUESTION_TAG {
+        bigint id PK
+        bigint question_id FK
+        bigint knowledge_tag_id FK
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    QUESTION_RESOURCE {
+        bigint id PK
+        bigint question_id FK
+        bigint resource_id FK
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    QUESTION_CODE_EXAMPLE {
+        bigint id PK
+        bigint question_id FK
+        bigint code_example_id FK
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    PROJECT_QUESTION {
+        bigint id PK
+        bigint project_id FK
+        bigint question_id FK
+        varchar created_by
+        timestamptz created_date
+        varchar updated_by
+        timestamptz modified_date
+    }
+
+    QUESTION_LEVEL ||--o{ QUESTION : classifies
+
+    KNOWLEDGE_CATEGORY ||--o{ KNOWLEDGE_TAG : contains
+
+    QUESTION ||--o{ QUESTION_TAG : tagged
+    KNOWLEDGE_TAG ||--o{ QUESTION_TAG : assigned
+
+    QUESTION ||--o{ QUESTION_RESOURCE : references
+    RESOURCE ||--o{ QUESTION_RESOURCE : linked
+
+    QUESTION ||--o{ QUESTION_CODE_EXAMPLE : illustrates
+    CODE_EXAMPLE ||--o{ QUESTION_CODE_EXAMPLE : reused
+
+    PROJECT ||--o{ PROJECT_QUESTION : contains
+    QUESTION ||--o{ PROJECT_QUESTION : belongs_to
+```
