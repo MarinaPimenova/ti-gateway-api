@@ -1,0 +1,33 @@
+services:
+  dashboard-ui:
+    container_name: dashboard-ui
+    image: dashboard-local:latest
+    ports:
+      - "3000:80"
+
+  gateway-service:
+    container_name: gateway-service
+    image: gateway-local:latest
+    environment:
+      SERVER_PORT: 8080
+      APPLICATION_URL: ${APPLICATION_URL}
+      OKTA_OAUTH2_ISSUER: ${OKTA_OAUTH2_ISSUER}
+      OKTA_OAUTH2_CLIENT_ID: ${OKTA_OAUTH2_CLIENT_ID}
+      OKTA_OAUTH2_CLIENT_SECRET: ${OKTA_OAUTH2_CLIENT_SECRET}
+      SESSION_SSL_ENABLED: ${SESSION_SSL_ENABLED}
+      SESSION_CACHE_HOST: ${SESSION_CACHE_HOST}
+      SESSION_CACHE_PORT: ${SESSION_CACHE_PORT}
+    ports:
+      - "8080:8080"
+
+  knowledge-service:
+    container_name: knowledge-service
+    image: knowledge-local:latest
+    environment:
+      SERVER_PORT: 8081
+      OKTA_OAUTH2_ISSUER: ${OKTA_OAUTH2_ISSUER}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL}
+      KNOWLEDGE_USER: ${KNOWLEDGE_USER}
+      KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD}
+    ports:
+      - "8081:8081"
