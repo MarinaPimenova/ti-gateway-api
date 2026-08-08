@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ClientErrorResponse {
-    private String errorMessage;
     private int status;
+    private String error;
+    private String message;
 }

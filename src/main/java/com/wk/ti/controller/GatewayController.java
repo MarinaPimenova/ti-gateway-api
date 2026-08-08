@@ -24,7 +24,7 @@ import static org.springframework.http.MediaType.*;
 
 @SuppressWarnings("SpringElInspection")
 @RestController
-@RequestMapping({"/api/v1", "/api/v2"})
+@RequestMapping({"/api/v1"})
 @Slf4j
 public class GatewayController {
 

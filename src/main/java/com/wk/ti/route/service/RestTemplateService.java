@@ -41,7 +41,7 @@ import static com.wk.ti.util.FileUtil.toTempFileWithUtf8IfText;
 import static java.lang.String.format;
 
 /**
- * @noinspection unchecked, rawtypes
+ * @noinspection unchecked, rawtypes, unused
  */
 @Slf4j
 @Service
@@ -175,8 +175,9 @@ public class RestTemplateService {
             URI uri) throws MalformedURLException {
 
         return ClientErrorResponse.builder()
+                .error("error")
                 .status(status.value())
-                .errorMessage(
+                .message(
                         "Response: Error message is not provided. URL: "
                                 + uri.toURL())
                 .build();
