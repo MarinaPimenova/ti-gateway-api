@@ -94,7 +94,7 @@ ms:
     onboard-path: "${ONBOARD_PATH:/page/onboard}"
     dashboard-base-url: "${DASHBOARD_BASE_URL:http://localhost:3000}"
   client-to-url:
-    dashboard-url: "${DASHBOARD_URL:http://localhost:3000/dashboard-page}"
+    knowledge-url: "${DASHBOARD_URL:http://localhost:3000/dashboard-page}"
     s2s-url: "${S2S_PAGE_URL:http://localhost:5000/s2s-page}"
   service-name-to-uri:
     knowledge: http://${KNOWLEDGE_SERVICE:localhost}:${KNOWLEDGE_SERVICE_PORT:8081}
