@@ -1,0 +1,4 @@
+# to find out logout endpoint you should open https://dev-xxxxx.okta.com/oauth2/default/.well-known/openid-configuration
+GET https://dev-xxxxx.okta.com/.well-known/openid-configuration
+
+###

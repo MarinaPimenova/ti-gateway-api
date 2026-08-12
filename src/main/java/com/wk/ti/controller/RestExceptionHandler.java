@@ -1,6 +1,7 @@
 package com.wk.ti.controller;
 
 import com.wk.ti.exception.IntegrationException;
+import com.wk.ti.exception.NotAuthorizedException;
 import com.wk.ti.exception.RouteNotSupportedException;
 import com.wk.ti.exception.model.ClientErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,15 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 @Slf4j
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler({NotAuthorizedException.class})
+    public ResponseEntity<ClientErrorResponse> handleNotAuthorizedException(Exception ex) {
+        log.error(ex.getMessage());
+        ClientErrorResponse errorResponse =
+                buildErrorMessage("not_authorized", ex.getMessage(), HttpStatus.UNAUTHORIZED.value());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler({RouteNotSupportedException.class})
     public ResponseEntity<ClientErrorResponse> handleRouteNotSupportedException(Exception ex) {

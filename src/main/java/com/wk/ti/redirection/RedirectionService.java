@@ -1,19 +1,16 @@
 package com.wk.ti.redirection;
 
-import com.wk.ti.security.model.UserDetail;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.savedrequest.SimpleSavedRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -31,15 +28,12 @@ public class RedirectionService {
         this.applicationUrl = applicationUrl;
     }
 
-    public void handleAuthSuccess(HttpServletRequest request,
-                                  HttpServletResponse response,
-                                  OidcUser oidcUser, UserDetail userDetail) throws IOException {
-        log.info("Action: authentication. Parameters: user: {}, role: {}",
-                userDetail.getUsername(),
-                userDetail.getRoles().stream()
-                        .collect(Collectors.joining(", ", "{", "}")));
+    public void handleAuthSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
 
         String savedRequestURI;
+
         if (request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST") != null) {
             savedRequestURI = ((SimpleSavedRequest) request.getSession()
                     .getAttribute("SPRING_SECURITY_SAVED_REQUEST")).getRedirectUrl();
@@ -47,18 +41,10 @@ public class RedirectionService {
         }
 
         setJSessionIdCookie(response);
-        String redirectionUrl = handleAuthenticatedRootRedirection(
-                request.getSession().getId(), oidcUser, userDetail);
-        response.sendRedirect(redirectionUrl);
-    }
 
-    private String handleAuthenticatedRootRedirection(String sessionId, OidcUser oidcUser, UserDetail userDetail) {
-        if (userDetail.getRegistered()) {
-            log.info("Action: redirection according with session id: {}", sessionId);
-            return redirectionHandler.handleLoginRedirection(sessionId);
-        }
-        // TODO: handle onboard redirection
-        return redirectionHandler.handleLoginRedirection(sessionId);
+        String redirectionUrl = redirectionHandler.handleRedirection(
+                request.getSession().getId());
+        response.sendRedirect(redirectionUrl);
     }
 
     public void setJSessionIdCookie(HttpServletResponse httpServletResponse) {

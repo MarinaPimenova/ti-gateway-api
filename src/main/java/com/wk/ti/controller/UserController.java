@@ -1,6 +1,8 @@
 package com.wk.ti.controller;
 
-import com.wk.ti.security.util.SecurityContextUtil;
+import com.wk.ti.security.model.UserDetail;
+import com.wk.ti.security.service.UserDetailExtractorResolver;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.springframework.http.MediaType;
@@ -16,27 +18,15 @@ import java.util.Map;
 
 import static java.lang.String.format;
 
+@SuppressWarnings("SpringElInspection")
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 public class UserController {
-//    private final RedirectionService redirectionService;
-//
-//    public UserController(RedirectionService redirectionService) {
-//        this.redirectionService = redirectionService;
-//    }
-//
-//    @GetMapping
-//    public void defaultRedirect(HttpServletRequest request,
-//                                HttpServletResponse response,
-//                                @AuthenticationPrincipal OidcUser user) throws IOException {
-//        if (user != null) {
-//            log.info(format("Action: process request: %s", request.getRequestURL().toString()));
-//            UserDetail userDetail = SecurityContextUtil.getUserDetail(user);
-//            redirectionService.handleAuthSuccess(request, response, user, userDetail);
-//        }
-//    }
+    private final UserDetailExtractorResolver userDetailExtractorResolver;
 
-    @GetMapping("favicon.ico") void returnNoFavicon() {
+    @GetMapping("favicon.ico")
+    void returnNoFavicon() {
         // to avoid 404 for favicon
     }
 
@@ -48,13 +38,10 @@ public class UserController {
 
     @GetMapping("/api/v1/user")
     public ResponseEntity<?> getUser(@AuthenticationPrincipal OidcUser user,
-                                     @RequestParam(defaultValue = "landing-url") String redirectId) {
+                                     @RequestParam(defaultValue = "knowledge-url") String redirectId) {
         log.info(format("Authentication is requested redirectId: %s", redirectId));
-        return ResponseEntity.ok().body(SecurityContextUtil.getUserDetail(user));
+        UserDetail userDetail = userDetailExtractorResolver.extract(user);
+        return ResponseEntity.ok().body(userDetail);
     }
 
-    @GetMapping("/api/v1/user/roles")
-    public ResponseEntity<?> getUserRoles(@AuthenticationPrincipal OidcUser user) {
-        return ResponseEntity.ok().body(SecurityContextUtil.getRoles(user));
-    }
 }
