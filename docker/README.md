@@ -18,7 +18,7 @@ Check authentication via Okta:
 
 ## Run All microservices with all infrastructure
 1. COnfigure env file under docker folder.
-   Using an `env` file lets you to use the same file for use by a plain docker <br/>
+   Using an `env` file lets you use the same file for use by a plain docker <br/>
    run --env-file ... command, <br/>
    or to share the same `env` file within multiple services <br/>
    without the need to duplicate a long environment YAML block.
@@ -37,7 +37,7 @@ Images for services should be built:<br/>
 
 ```shell
 cd k8s
-./deploy-all-local.sh PATH_TO_REPOSITORY
+./build-all-target-and-image.sh PATH_TO_REPOSITORY
 cd ../docker
 ./run-compose.sh
 where `env` should contain all values for environment variables

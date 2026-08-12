@@ -40,13 +40,18 @@ spring:
           okta:
             provider: okta
             authorization-grant-type: authorization_code
-            scope: openid
+            scope:
+              - openid
+              - profile
+              - email
+              - given_name
+              - family_name
             client-id: ${OKTA_OAUTH2_CLIENT_ID}
             client-secret: ${OKTA_OAUTH2_CLIENT_SECRET}
             redirect-uri: ${app.application-url}/login/oauth2/code/okta
         provider:
           okta:
-            issuer-uri: https://${OKTA_OAUTH2_ISSUER}/
+            issuer-uri: https://${OKTA_DOMAIN}/
   data:
     redis:
       ssl:
@@ -64,7 +69,7 @@ spring:
       matching-strategy: ant_path_matcher
 
 okta:
-  logout-url: https://${OKTA_OAUTH2_ISSUER}/logout
+  logout-url: https://${OKTA_DOMAIN}/v2/logout?client_id=${OKTA_OAUTH2_CLIENT_ID}&returnTo=${ms.client-to-url.knowledge-url}/relogin
 
 management:
   endpoints:
@@ -91,10 +96,9 @@ ms:
     allowed-origins: ${ms.services.dashboard-base-url}
   origin: ${APPLICATION_URL:http://localhost:8080}
   services:
-    onboard-path: "${ONBOARD_PATH:/page/onboard}"
     dashboard-base-url: "${DASHBOARD_BASE_URL:http://localhost:3000}"
   client-to-url:
-    dashboard-url: "${DASHBOARD_URL:http://localhost:3000/dashboard-page}"
+    knowledge-url: "${KNOWLEDGE_URL:http://localhost:3000/dashboard-page}"
     s2s-url: "${S2S_PAGE_URL:http://localhost:5000/s2s-page}"
   service-name-to-uri:
     knowledge: http://${KNOWLEDGE_SERVICE:localhost}:${KNOWLEDGE_SERVICE_PORT:8081}

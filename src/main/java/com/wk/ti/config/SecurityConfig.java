@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -30,13 +31,11 @@ import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SimpleSavedRequest;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.*;
@@ -45,10 +44,8 @@ import java.util.*;
 @Configuration
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 3600)
 public class SecurityConfig {
-    private static final String LOGOUT_URL = "/logout";
-    private final String issuer;
+    private final String oktaLogout;
     private final String allowedOrigins;
-    private final String clientId;
 
     private final CustomizeAuthenticationSuccessHandler customizeAuthenticationSuccessHandler;
     private final GeneralAuthorizationRequestRepository generalAuthorizationRequestRepository;
@@ -57,17 +54,17 @@ public class SecurityConfig {
     private final RateLimitingFilter rateLimitingFilter;
 
     public SecurityConfig(
-            @Value("${spring.security.oauth2.client.provider.okta.issuer-uri}") String issuer,
-            @Value("${spring.security.oauth2.client.registration.okta.client-id}") String clientId,
+
             @Value("${ms.cors.allowed-origins}") String allowedOrigins,
+            @Value("${okta.logout-url}") String oktaLogout,
 
             CustomizeAuthenticationSuccessHandler customizeAuthenticationSuccessHandler,
             GeneralAuthorizationRequestRepository generalAuthorizationRequestRepository,
             RedirectionHandler redirectionHandler,
             RateLimitingFilter rateLimitingFilter) {
-        this.issuer = issuer;
-        this.clientId = clientId;
+
         this.allowedOrigins = allowedOrigins;
+        this.oktaLogout = oktaLogout;
 
         this.customizeAuthenticationSuccessHandler = customizeAuthenticationSuccessHandler;
         this.generalAuthorizationRequestRepository = generalAuthorizationRequestRepository;
@@ -79,7 +76,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http.sessionManagement(session -> session
-                .invalidSessionStrategy(new SimpleRedirectInvalidSessionStrategy(LOGOUT_URL))
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .sessionFixation().none()
         );
@@ -87,11 +83,17 @@ public class SecurityConfig {
         http.exceptionHandling(exception -> exception
                 .defaultAuthenticationEntryPointFor(
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), // Return 401 for APIs
-                        PathPatternRequestMatcher.withDefaults().matcher("/api/**")
+                        PathPatternRequestMatcher.withDefaults()
+                                .matcher("/api/**")
                 )
         );
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/rest/v1/**",
+                                "/actuator/health",
+                                "/actuator/health/"
+                        ).permitAll()
                         .requestMatchers(
                                 "/v3/**",
                                 //"/rest/v1/**/v3/api-docs",
@@ -99,10 +101,8 @@ public class SecurityConfig {
                                 "/swagger-ui/index.html",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                LOGOUT_URL,
                                 "/version",
                                 "/oauth2/**",
-                                "/rest/v1/**",
                                 "/actuator/**",
                                 "/index.html",
                                 "/static/**",
@@ -167,7 +167,9 @@ public class SecurityConfig {
     public RequestCache refererRequestCache() {
         return new HttpSessionRequestCache() {
             @Override
-            public void saveRequest(HttpServletRequest request, HttpServletResponse response) {
+            public void saveRequest(
+                    @NonNull HttpServletRequest request,
+                    @NonNull HttpServletResponse response) {
                 String referrer = request.getHeader("referer");
                 if (referrer == null) {
                     referrer = request.getRequestURL().toString();
@@ -197,7 +199,10 @@ public class SecurityConfig {
     public Filter sessionLoggerFilter() {
         return new OncePerRequestFilter() {
             @Override
-            protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            protected void doFilterInternal(
+                    @NonNull HttpServletRequest request,
+                    @NonNull HttpServletResponse response,
+                    @NonNull FilterChain filterChain)
                     throws ServletException, IOException {
                 HttpSession session = request.getSession(false);
                 String uri = request.getRequestURI();
@@ -205,7 +210,7 @@ public class SecurityConfig {
                     log.info("Session ID: {}", session.getId());
                     Collections.list(session.getAttributeNames())
                             .forEach(name -> {
-                                if (name.contains("cognito:username")
+                                if (name.contains("google")
                                         || name.contains("userId")
                                         || name.contains("SPRING_SECURITY_SAVED_REQUEST")) {
                                     log.info(" - " + name + ": " + session.getAttribute(name));
@@ -222,8 +227,7 @@ public class SecurityConfig {
     private LogoutHandler logoutHandler() {
         return (request, response, authentication) -> {
             try {
-                String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                response.sendRedirect(issuer + "v2/logout?client_id=" + clientId + "&returnTo=" + baseUrl);
+                response.sendRedirect(oktaLogout);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

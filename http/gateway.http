@@ -1,0 +1,18 @@
+### ti-knowledge-api
+GET http://localhost:8080/api/v1/knowledge/questions
+Accept: application/json
+Authorization: Bearer <JWT>
+
+###
+GET http://localhost:8080/api/v1/knowledge/projects
+Accept: application/json
+Authorization: Bearer <JWT>
+
+###
+
+### ti-orchestrator-api
+GET http://localhost:8080/api/v1/orchestrator/questions
+Accept: application/json
+Authorization: Bearer <JWT>
+
+###

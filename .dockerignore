@@ -1,0 +1,56 @@
+# IDE
+.idea/
+*.iml
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Gradle
+.gradle/
+
+# Source code
+src/
+http/
+doc/
+
+# Kubernetes / scripts not required in the image
+k8s/
+
+# Docker configuration
+docker/
+
+# Node.js (not required for this backend service)
+node_modules/
+public/
+
+# Documentation
+README.md
+HELP.md
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Maven files (not used by this project)
+mvnw
+mvnw.cmd
+pom.xml
+
+# Gradle files not required at runtime
+gradle/
+gradlew
+gradlew.bat
+build.gradle
+settings.gradle
+
+# Test-related files
+**/test/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db

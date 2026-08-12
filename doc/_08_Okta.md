@@ -60,7 +60,7 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--okta.oauth2.issuer=https://{y
 > **NOTE:** Putting secrets on the command line should ONLY be done for examples, do NOT do this in production. Instead, we recommend you store them as environment variables. For example:
 
 ```bash
-export OKTA_OAUTH2_ISSUER=https://{yourOktaDomain}/oauth2/default
+export OKTA_DOMAIN=https://{yourOktaDomain}/oauth2/default
 export OKTA_OAUTH2_CLIENT_ID={clientId}
 export OKTA_OAUTH2_CLIENT_SECRET={clientSecret}
 export OKTA_OAUTH2_POST_LOGOUT_REDIRECT_URI={absoluteLogoutRedirectUri}

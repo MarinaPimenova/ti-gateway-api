@@ -1,4 +1,4 @@
-package com.wk.ti.config;
+package com.wk.ti.redirection;
 
 import com.wk.ti.redirection.model.RedirectionAttribute;
 import jakarta.servlet.FilterChain;
@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -21,8 +22,8 @@ public class RedirectCaptureChainFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws IOException, ServletException {
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws IOException, ServletException {
         String redirect = request.getParameter(CLIENT_ID_ATTR_NAME);
         HttpSession httpSession = request.getSession();
         if (httpSession != null) {

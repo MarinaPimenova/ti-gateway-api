@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 @NoArgsConstructor
 @Slf4j
 public class RedirectionAttribute implements Serializable {
-    public static final String DEFAULT_REDIRECTION = "dashboard-url";
+    public static final String DEFAULT_REDIRECTION = "knowledge-url";
     private ConcurrentMap<String, String> sessionIdToRedirectIdMap = new ConcurrentHashMap<>();
 
     public String getRedirectId(String sessionId) {

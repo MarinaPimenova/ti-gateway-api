@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-import static com.wk.ti.config.RedirectCaptureChainFilter.LOGOUT_SESSION_ID;
+import static com.wk.ti.redirection.RedirectCaptureChainFilter.LOGOUT_SESSION_ID;
 import static com.wk.ti.redirection.model.RedirectionAttribute.DEFAULT_REDIRECTION;
 import static java.lang.String.format;
 
@@ -29,7 +29,7 @@ public class RedirectionHandler {
         this.logoutRedirectUrl = logoutRedirectUrl;
     }
 
-    private String handleRedirection(String sessionId) {
+    public String handleRedirection(String sessionId) {
         // Get redirect_uri from session (set by filter or parameter)
         String redirect = redirectionAttribute.getRedirectId(sessionId);
         String redirectId = redirect == null ? DEFAULT_REDIRECTION : redirect;
@@ -41,12 +41,6 @@ public class RedirectionHandler {
             }
         }
         return redirectionConfiguration.getClientToUrl().get(DEFAULT_REDIRECTION);
-    }
-
-    public String handleLoginRedirection(String sessionId) {
-        String redirect = handleRedirection(sessionId);
-        log.info(format("Action: Login redirection with attribute redirectId: %s", redirect));
-        return redirect.contains("dashboard-page") ? redirect + "/page" : redirect;
     }
 
     public String handleLogoutRedirection(String sessionId) {
