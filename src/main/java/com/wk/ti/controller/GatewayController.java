@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -94,7 +95,11 @@ public class GatewayController {
     public ResponseEntity<?> upload(
             HttpServletRequest request,
             @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal(expression = "idToken") OidcIdToken idToken) {
+            @AuthenticationPrincipal OidcUser oidcUser) {
+        OidcIdToken idToken = null;
+        if (oidcUser != null) {
+            idToken = oidcUser.getIdToken();
+        }
         return ResponseEntity.ok(restTemplateService.upload(getURI(request), file,
                 restTemplateService.getHttpHeaders(idToken)));
     }

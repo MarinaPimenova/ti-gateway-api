@@ -5,7 +5,7 @@ to your IT and security tools to centralize
 - log collection, 
 - normalize data formats, 
 - and correlate security events. 
-- 
+
 Key aspects include data sources, normalization, and threat correlation.
 
 **Core Components**

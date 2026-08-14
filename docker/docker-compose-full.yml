@@ -1,0 +1,164 @@
+version: '3.8'
+
+x-logging: &default-logging
+  driver: loki
+  options:
+    loki-url: "http://localhost:3100/loki/api/v1/push"
+    loki-batch-size: "400"
+    max-size: "50m"
+
+services:
+  # --- Databases & Middleware ---
+  redis-session:
+    container_name: redis-session
+    image: redis:7-alpine
+    command: redis-server
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - knowledge-network
+
+  rabbitmq:
+    container_name: ti-rabbitmq-orchestrator
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RM_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RM_PASSWORD:-guest}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - knowledge-network
+
+  knowledge-postgres:
+    image: postgres:17
+    container_name: knowledge-postgres
+    environment:
+      POSTGRES_DB: ${KNOWLEDGE_DB_NAME:-knowledge_db}
+      POSTGRES_USER: ${KNOWLEDGE_USER:-postgres}
+      POSTGRES_PASSWORD: ${KNOWLEDGE_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./kb-sql:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - knowledge-network
+
+  # --- Observability Stack ---
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus-full.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - knowledge-network
+
+  loki:
+    image: grafana/loki:2.9.5
+    container_name: loki
+    command: [ "-config.file=/etc/loki/loki-config.yaml" ]
+    volumes:
+      - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - knowledge-network
+
+  zipkin:
+    image: openzipkin/zipkin:3
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - knowledge-network
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASS:-admin}
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - knowledge-network
+
+  # --- Spring Boot Services ---
+  dashboard-ui:
+    container_name: dashboard-ui
+    image: ti-ui-local:latest
+    ports:
+      - "5000:80"
+    networks:
+      - knowledge-network
+
+  gateway-service:
+    container_name: gateway-service
+    image: gateway-local:latest
+    environment:
+      SERVER_PORT: 8080
+      SPRING_APPLICATION_NAME: ti-gateway-api
+      APPLICATION_URL: ${APPLICATION_URL}
+      KNOWLEDGE_BASE_URL: ${KNOWLEDGE_BASE_URL:-http://dashboard-ui:5000}
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      OKTA_OAUTH2_CLIENT_ID: ${OKTA_OAUTH2_CLIENT_ID}
+      OKTA_OAUTH2_CLIENT_SECRET: ${OKTA_OAUTH2_CLIENT_SECRET}
+      SESSION_SSL_ENABLED: ${SESSION_SSL_ENABLED}
+      SESSION_CACHE_HOST: redis-session
+      SESSION_CACHE_PORT: ${SESSION_CACHE_PORT}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - redis-session
+    ports:
+      - "8080:8080"
+    networks:
+      - knowledge-network
+
+  knowledge-service:
+    container_name: knowledge-service
+    image: knowledge-local:latest
+    environment:
+      SERVER_PORT: 8081
+      SPRING_APPLICATION_NAME: ti-knowledge-api
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL}
+      KNOWLEDGE_USER: ${KNOWLEDGE_USER}
+      KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD}
+      #SPRING_RABBITMQ_HOST: rabbitmq
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - knowledge-postgres
+      - rabbitmq
+    ports:
+      - "8081:8081"
+    networks:
+      - knowledge-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  knowledge-network:
+    name: knowledge-network

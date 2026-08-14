@@ -15,6 +15,8 @@ public class SseProxyConfig {
         exec.setMaxPoolSize(50);
         exec.setQueueCapacity(200);
         exec.setThreadNamePrefix("sse-proxy-");
+        // Bind the decorator to copy the MDC map to new threads
+        exec.setTaskDecorator(new MdcTaskDecorator());
         exec.initialize();
         return exec;
     }
