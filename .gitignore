@@ -25,3 +25,5 @@ docker/redis/dump.rdb
 okta-secrets.txt
 src/main/resources/application-local.yml
 
+.vscode/
+.env
