@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'ti-platform-services'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          # Uncomment below if testing Spring Boot running locally in IntelliJ:
+          - 'gateway-service:8080'
+          - 'knowledge-service:8081'
+#          - 'ti-orchestrator-api:8082'
+#          - 'ti-import-api:8083'
+#          - 'ti-export-api:8084'
+#          - 'ti-audit-api:8085'
+#          - 'ti-notification-api:8086'

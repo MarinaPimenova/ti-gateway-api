@@ -2,7 +2,8 @@
 
 ## Overview
 
-The **TI Knowledge Platform** is a cloud-native microservices application that demonstrates modern enterprise architecture patterns using Java 21 and Spring Boot 4.
+The **TI Knowledge Platform** is a cloud-native microservices application 
+that demonstrates modern enterprise architecture patterns using Java 21 and Spring Boot 4.
 
 The system follows the principles of:
 
@@ -14,7 +15,8 @@ The system follows the principles of:
 - Asynchronous Processing
 - Stateless Services
 
-The application consists of independent services that communicate using REST APIs and RabbitMQ events.
+The application consists of independent services that communicate using REST APIs 
+and RabbitMQ events.
 
 ---
 
@@ -74,15 +76,15 @@ flowchart TD
 
 Each microservice owns a single business capability.
 
-| Service | Responsibility |
-|----------|----------------|
-| ti-ui | User Interface |
-| ti-gateway-api | API Gateway, BFF, Authentication |
-| ti-knowledge-api | Knowledge management |
+| Service             | Responsibility |
+|---------------------|----------------|
+| ti-knowledge-ui     | User Interface |
+| ti-gateway-api      | API Gateway, BFF, Authentication |
+| ti-knowledge-api    | Knowledge management |
 | ti-orchestrator-api | Long-running job orchestration |
-| ti-import-api | Import processing |
-| ti-export-api | Export processing |
-| ti-audit-api | Audit logging |
+| ti-import-api       | Import processing |
+| ti-export-api       | Export processing |
+| ti-audit-api        | Audit logging |
 | ti-notification-api | User notifications |
 
 ---

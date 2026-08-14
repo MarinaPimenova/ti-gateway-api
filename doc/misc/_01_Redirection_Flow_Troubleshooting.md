@@ -370,7 +370,7 @@ http://localhost:8080
 Your React application at:
 
 ```text
-http://localhost:3000
+http://localhost:5000
 ```
 
 does **not** need to read this cookie.
@@ -393,13 +393,13 @@ configuration.setAllowCredentials(true);
 This is correct for a session-cookie architecture, assuming `allowedOrigins` contains:
 
 ```text
-http://localhost:3000
+http://localhost:5000
 ```
 
 For example:
 
 ```text
-allowed-origins=http://localhost:3000
+allowed-origins=http://localhost:5000
 ```
 
 Don't use:

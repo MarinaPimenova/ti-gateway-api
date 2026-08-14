@@ -1,6 +1,6 @@
 # Run Application
 
-## Run only Gateway with Redis 
+## Run only Redis 
 
 ```shell
 cd docker
@@ -15,9 +15,26 @@ Check version using the following URL from browser:
 Check authentication via Okta:
 `http://localhost:8080`
 
+## Run Infrastructure Only
+
+> Use Case: Run this when developing locally inside IntelliJ IDEA. 
+> All database, messaging, and observability backends will run in Docker, 
+> while your Spring Boot applications run locally on your host machine.
+
+### Running IntelliJ Setup:
+```shell
+docker compose -f docker-compose-infra.yml --env-file env up -d
+```
+> In IntelliJ, run GatewayServiceApplication 
+> and KnowledgeServiceApplication with MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://localhost:9411/api/v2/spans.
+---
 
 ## Run All microservices with all infrastructure
-1. COnfigure env file under docker folder.
+
+> Use Case: Production-like deployment running everything inside Docker containers, 
+> including Spring Boot microservices with Loki logging drivers attached.
+
+1. Configure env file under docker folder.
    Using an `env` file lets you use the same file for use by a plain docker <br/>
    run --env-file ... command, <br/>
    or to share the same `env` file within multiple services <br/>
@@ -44,6 +61,6 @@ where `env` should contain all values for environment variables
 ```
 
 where `run-compose.sh` executes the following command
-`docker compose -f _03_all_services.yaml --env-file env up`
+`docker compose -f docker-compose-full.yaml --env-file env up`
 
 

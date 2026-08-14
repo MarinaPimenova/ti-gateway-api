@@ -90,7 +90,7 @@ Examples:
 
 ## Micrometer
 
-Micrometer collects application metrics and exposes them in a Prometheus-compatible format.
+Micrometer (micrometer-registry-prometheus) collects application metrics and exposes them in a Prometheus-compatible format.
 
 Examples:
 
@@ -137,6 +137,8 @@ OpenTelemetry instruments distributed requests across microservices.
 
 Every incoming request receives a unique trace identifier that is propagated between services.
 
+- tracing-bridge-otel
+- exporter-otlp
 ---
 
 ## Zipkin
