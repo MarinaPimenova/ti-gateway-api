@@ -15,20 +15,21 @@ jobs:
   build:
     name: Build (Maven)
     runs-on: ubuntu-latest
-    env:
-      GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lowercase repository name for image tag
+        run: |
+          echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Set up JDK 21 and cache Maven
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-          cache: 'maven'
+          cache: maven
 
       - name: Build (package)
         run: ./mvnw -B -U -V -DskipTests package
@@ -36,26 +37,19 @@ jobs:
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-            registry: ghcr.io
-            username: ${{ env.GITHUB_USERNAME }}
-            password: ${{ env.GITHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ secrets.GH_USERNAME }}
+          password: ${{ secrets.GH_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
           context: .
-#          file: ./Dockerfile
-          push: false
+          push: true
           tags: |
-            ghcr.io/${{ env.GITHUB_USERNAME }}/ti-gateway-api:ci-${{ github.sha }}
-            ghcr.io/${{ env.GITHUB_USERNAME }}/ti-gateway-api:latest
-
-      - name: Push image to GHCR
-        run: |
-            docker push ghcr.io/${{ env.GITHUB_USERNAME }}/ti-gateway-api:ci-${{ github.sha }}
-            docker push ghcr.io/${{ env.GITHUB_USERNAME }}/ti-gateway-api:latest
-
+            ${{ env.IMAGE_NAME }}:ci-${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
       - name: Remove local images
         run: |
-            docker image rm ghcr.io/${{ env.GITHUB_USERNAME }}/ti-gateway-api:ci-${{ github.sha }}
-            docker image rm ghcr.io/${{ env.GITHUB_USERNAME }}/ti-gateway-api:latest
+            docker image rm ${{ env.IMAGE_NAME }}:ci-${{ github.sha }}
+            docker image rm ${{ env.IMAGE_NAME }}:latest
