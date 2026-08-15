@@ -2,9 +2,9 @@ name: Build and package
 
 on:
   push:
-    branches: [ main, master, feature/ci-build ]
+    branches: [main, master, 'feature/**']
   pull_request:
-    branches: [ feature/ci-build ]
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
