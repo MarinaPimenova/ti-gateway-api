@@ -6,7 +6,9 @@ The application is a Single Page Application (SPA) built with **React**, **Vite*
 
 > Users authenticate using **Okta** with the OAuth 2.0 Authorization Code Flow. 
 
-> Unauthenticated users are automatically redirected to the Okta login page. 
+> Unauthenticated users 
+> either if they open http://localhost:8080 then they are automatically redirected to the Okta login page.
+> or if they open http://localhost:5000/dashboard-page then default public view is opened and there is Login button.
 
 <img alt="auth0-okta-login.png" height="300" src="auth0-okta-login.png" width="200"/>
 

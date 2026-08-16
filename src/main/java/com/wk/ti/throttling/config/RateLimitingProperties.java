@@ -16,9 +16,9 @@ import java.time.Duration;
 @NoArgsConstructor
 @Validated
 public class RateLimitingProperties {
-    boolean enabled;
-    long capacity;
-    long refill;
-    Duration refillPeriod;
+    private boolean enabled;
+    private long capacity;
+    private long refill;
+    private Duration refillPeriod;
 }
 
