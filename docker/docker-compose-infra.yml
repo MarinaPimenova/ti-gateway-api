@@ -1,7 +1,9 @@
-version: '3.8'
-
 services:
-  # --- Databases & Middleware ---
+
+  # ============================================================
+  # Databases & Middleware
+  # ============================================================
+
   redis-session:
     container_name: redis-session
     image: redis:7-alpine
@@ -37,40 +39,86 @@ services:
     networks:
       - knowledge-network
 
-  # --- Observability Stack ---
+  # ============================================================
+  # Observability
+  # ============================================================
+
   prometheus:
     image: prom/prometheus:v2.51.0
     container_name: prometheus
+    restart: unless-stopped
     network_mode: host
     volumes:
-      - ./observability/prometheus/prometheus-local.yml:/etc/prometheus/prometheus.yml
+      - ./observability/prometheus/prometheus-local.yml:/etc/prometheus/prometheus.yml:ro
 
   loki:
     image: grafana/loki:2.9.5
     container_name: loki
-    command: [ "-config.file=/etc/loki/loki-config.yaml" ]
+    restart: unless-stopped
+    command:
+      - -config.file=/etc/loki/loki-config.yaml
     volumes:
-      - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/tmp/loki
+    network_mode: host
+
+  # ------------------------------------------------------------
+  # Grafana Alloy - Docker logs -> Loki
+  # ------------------------------------------------------------
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy
+    restart: unless-stopped
+
+    command:
+      - run
+      - /etc/alloy/config.alloy
+
+    volumes:
+      - ./observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+
+      # Docker container logs
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+
+      # Docker metadata
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
     network_mode: host
 
   zipkin:
     image: openzipkin/zipkin:3
     container_name: zipkin
+    restart: unless-stopped
     network_mode: host
 
   grafana:
     image: grafana/grafana:10.4.0
     container_name: grafana
+    restart: unless-stopped
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASS:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-admin}
     volumes:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
     network_mode: host
+
+
+# ==============================================================
+# Volumes
+# ==============================================================
 
 volumes:
   postgres-data:
   redis-data:
   rabbitmq-data:
+  loki-data:
+  grafana-data:
+
+
+# ==============================================================
+# Networks
+# ==============================================================
 
 networks:
   knowledge-network:

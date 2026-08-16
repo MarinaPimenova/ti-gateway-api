@@ -1,0 +1,20 @@
+GET http://localhost:8080/api/v1/token
+Accept: application/json
+
+###
+POST http://localhost:8080/api/v1/knowledge/questions
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlUtdUhhZlotNGVNc0x5R1RZZm9GRSJ9.eyJnaXZlbl9uYW1lIjoiTWFyaW5hIiwiZmFtaWx5X25hbWUiOiJQaW1lbm92YSIsIm5pY2tuYW1lIjoibW5mcG1hIiwibmFtZSI6Ik1hcmluYSBQaW1lbm92YSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NLcmpPTWN1eFVqeFo4Vjl5TEZaY1g5YUpJNVFBeWxJZmxJa3E5UHpzUVFHMUZISVE9czk2LWMiLCJ1cGRhdGVkX2F0IjoiMjAyNi0wOC0xNlQyMDoxNzoyOS45MjZaIiwiZW1haWwiOiJtbmZwbWFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzcyI6Imh0dHBzOi8vZGV2LXF6NXFzbzNoeXcwZjF2eWsudXMuYXV0aDAuY29tLyIsImF1ZCI6InpNQ3ZvWVlRVnUyN0hXUXFrUXlmOENGb1JTekxZN24wIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMDE2NzA2MTYyNzg3NzUyMzQzMzAiLCJpYXQiOjE3ODY5MTQzOTksImV4cCI6MTc4Njk1MDM5OSwic2lkIjoidC1tcXdYeVZxNG9vMGV5QzdETzIzdUNieGppRXJ4SkoiLCJub25jZSI6IlYyby1QVF9tQU9KMGNJNFAwWFQ1Z091MGJEelI3UmFoMFhKS0dyY0lyNWMifQ.gFlnY4vwQNWizf_mhXjPrh6fChnqqmyc2hVfdGHidVF4utwexJZH62i3FQpuf1bko6ttSE3jGRX2kS057jFfmGm76Sr1K8RjXAtVwUtMUF-awcQWnZy8m00hkoy4rhAKHKbDQ4RRGz7qeLSmEgzA1f-SURlgl08KvqP3C7BaR_Lq4NtmDY7qgnD5gHJ6jIXp2re5MRtbu8G7CaUJyqTCQc-brJbzzrqnKxdl2mn3Mwf60gqpGVu6YQtV8wr1GrenTqorne4HIqG7FrPKc7yav73YtGDLPy0zqSVWjF2VGSI5X1YR3Ynmx1p4lmzTAWK36fEGLfgCJcmWGuIxUm5I9g
+
+{
+  "question": "What is durability?",
+  "shortAnswer": "Durability ensures that changes that were applied to DB during successful transaction will be saved even if system failures.",
+  "questionLevelId": 1,
+  "tagIds": [
+    17
+  ],
+  "projectIds": [],
+  "resources": []
+}
+###

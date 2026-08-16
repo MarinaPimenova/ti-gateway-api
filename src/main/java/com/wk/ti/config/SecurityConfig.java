@@ -40,6 +40,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.*;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 @Slf4j
 @Configuration
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 3600)
@@ -79,7 +80,10 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .sessionFixation().none()
         );
-
+        http
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                );
         http.exceptionHandling(exception -> exception
                 .defaultAuthenticationEntryPointFor(
                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), // Return 401 for APIs

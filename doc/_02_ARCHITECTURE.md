@@ -143,13 +143,9 @@ Patterns
 
 Responsibilities
 
-- OAuth2 Login
-- Okta integration
-- JWT validation
 - Request routing
 - API aggregation
-- Security
-- OpenAPI aggregation
+- Security: OAuth2 Login, Okta Integration, JWT Validation
 - Resilience4j
 
 All frontend requests pass through this service.
