@@ -1,4 +1,4 @@
-name: Build and package
+name: CI workflow
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    name: Build
+    name: Build artefact
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +37,7 @@ jobs:
           path: target/*.jar
 
   publish:
-    name: Publish to GHCR
+    name: Build image & Publish
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
