@@ -31,7 +31,7 @@ jobs:
         run: ./mvnw -B -U -V -DskipTests package
 
       - name: Upload jar artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: app-jar
           path: target/*.jar
@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download jar artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: app-jar
           path: target
