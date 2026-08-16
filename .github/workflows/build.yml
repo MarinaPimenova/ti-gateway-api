@@ -1,10 +1,10 @@
-name: Build and package
+name: CI workflow
 
 on:
   push:
-    branches: [main, master, 'feature/**']
+    branches: [main, 'feature/**']
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -13,16 +13,12 @@ permissions:
 
 jobs:
   build:
-    name: Build (Maven)
+    name: Build artefact
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-
-      - name: Lowercase repository name for image tag
-        run: |
-          echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Set up JDK 21 and cache Maven
         uses: actions/setup-java@v5
@@ -34,14 +30,40 @@ jobs:
       - name: Build (package)
         run: ./mvnw -B -U -V -DskipTests package
 
+      - name: Upload jar artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: app-jar
+          path: target/*.jar
+
+  publish:
+    name: Build image & Publish
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download jar artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: app-jar
+          path: target
+
+      - name: Lowercase repository name for image tag
+        run: |
+          echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
       - name: Login to GHCR
+        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ secrets.GH_USERNAME }}
           password: ${{ secrets.GH_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image and push to GHCR
         uses: docker/build-push-action@v7
         with:
           context: .
