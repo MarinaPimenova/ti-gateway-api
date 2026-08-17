@@ -14,7 +14,7 @@ public class TracingDebugController {
 
     private final Tracer tracer;
 
-    @GetMapping("/debug/tracing")
+    @GetMapping("/rest/v1/debug/tracing")
     public Map<String, Object> tracing() {
         Span span = tracer.nextSpan().name("debug-span").start();
 
