@@ -26,7 +26,9 @@ import java.util.List;
 
 import static com.wk.ti.security.service.UserDetailExtractorStrategy.USER_ROLE;
 
-/** @noinspection ConstantConditions*/
+/**
+ * @noinspection ConstantConditions, unused
+ */
 public class TestUtils {
     private static final ObjectMapper mapper =
             new ObjectMapper().registerModule(new JavaTimeModule());

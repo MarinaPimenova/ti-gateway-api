@@ -8,6 +8,7 @@ import java.lang.annotation.*;
 
 import static com.wk.ti.security.service.UserDetailExtractorStrategy.USER_ROLE;
 
+@SuppressWarnings("unused")
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
@@ -21,7 +22,7 @@ public @interface WithOidcUser {
 
     String familyName() default "Doe";
 
-    String subject() default "user-123";
+    String subject() default "google";
 
     String[] authorities() default {USER_ROLE};
 

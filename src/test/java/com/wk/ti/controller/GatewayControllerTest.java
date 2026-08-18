@@ -44,14 +44,14 @@ class GatewayControllerTest {
     RedirectionAttribute redirectionAttribute;
     @MockitoBean
     RateLimiterService rateLimiterService;
-
-    @MockitoBean
-    RestTemplateService restTemplateService;
     @MockitoBean
     RateLimitingProperties rateLimitingProperties;
 
     @MockitoBean
     DownstreamProtectUrlService downstreamProtectUrlService;
+
+    @MockitoBean
+    RestTemplateService restTemplateService;
 
     @MockitoBean
     SseProxyService sseProxyService;
@@ -79,6 +79,63 @@ class GatewayControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("OK"));
 
-        verify(restTemplateService).exchange(any(), any(), any());
+        verify(downstreamProtectUrlService)
+                .getDownstreamServiceUrl(any());
+
+        verify(restTemplateService)
+                .getHttpHeaders(any(), any());
+
+        verify(restTemplateService)
+                .getHttpEntity(any(), any());
+
+        verify(restTemplateService)
+                .exchange(any(), any(), any());
     }
+
+    @Test
+    void shouldReturn401WhenUserIsNotAuthenticated() throws Exception {
+
+        mockMvc.perform(
+                        get("/api/v1/knowledge/version")
+                )
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(restTemplateService);
+        verifyNoInteractions(downstreamProtectUrlService);
+    }
+
+    @Test
+    @WithOidcUser(
+            email = "alice@test.com",
+            givenName = "Alice",
+            familyName = "Smith",
+            subject = "alice-123"
+    )
+    void shouldUseAuthenticatedOidcUser() throws Exception {
+
+        when(downstreamProtectUrlService.getDownstreamServiceUrl(any()))
+                .thenReturn(URI.create("http://localhost:8081/api/v1/version"));
+
+        when(restTemplateService.getHttpHeaders(any(), any()))
+                .thenReturn(new HttpHeaders());
+
+        when(restTemplateService.getHttpEntity(any(), any()))
+                .thenReturn(new HttpEntity<>(null, new HttpHeaders()));
+
+        ResponseEntity<?> response = ResponseEntity.ok("OK");
+
+        doReturn(response)
+                .when(restTemplateService)
+                .exchange(any(), any(), any());
+
+        mockMvc.perform(
+                        get("/api/v1/knowledge/version")
+                )
+                .andExpect(status().isOk());
+
+        // verify expected downstream interaction
+        verify(downstreamProtectUrlService)
+                .getDownstreamServiceUrl(any());
+    }
+
 }
