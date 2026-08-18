@@ -1,5 +1,6 @@
 server:
-  port: 9000
+  port: ${SERVER_PORT:8080}
+  address: 0.0.0.0 # Binds to all network interfaces so Docker bridge can connect
   servlet:
     context-path: /
     session:
@@ -15,81 +16,67 @@ app:
 
 info:
   app:
-    name: ti-gateway-api
-    version: '@project.version@'
+    name: app
+    version: '1.1.1'
 
 spring:
-
   application:
-    name: ${info.app.name}
+    name: ${info.app.name:app}
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
       resolve-lazily: false
       enabled: true
-data:
-  redis:
-    host: localhost
-    port: 6379
-  security:
-    oauth2:
-      client:
-        registration:
-          gateway-client:
-            client-id: dummy-id
-            client-secret: dummy-secret
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          gateway-client:
-            issuer-uri: https://auth.example.com
-
+  data:
+    redis:
+      host: localhost
+      port: 6379
   session:
     store-type: redis
     redis:
       flush-mode: on_save
       namespace: spring:session
-  # spring.mvc.pathmatch.matching-strategy=ant_path_matcher
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
 
 okta:
-  logout-url: https://domain.com/v2/logout?client_id=123&returnTo=${ms.client-to-url.knowledge-url}/relogin
+  logout-url: https://auth.example.com/v2/logout?client_id=dummy-id&returnTo=http://localhost:5000/dashboard-page/relogin
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus
+        include: health,info,metrics,prometheus
+
   endpoint:
     prometheus:
       access: read_only
+
   metrics:
     tags:
       application: ${spring.application.name}
     distribution:
       percentiles-histogram:
-        http.server.requests: true # Enables exemplars for correlation in Grafana
-  tracing:
-    brave:
-      enabled: false # Ensures OpenTelemetry OTEL bridge is favored over Brave
+        http.server.requests: true
 
+  tracing:
     sampling:
-      probability: 1.0 # 100% sampling for local development / troubleshooting
-  otlp:
-    tracing:
-      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
-      transport: http
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+    export:
+      zipkin:
+        enabled: true
+        endpoint: ${MANAGEMENT_TRACING_EXPORT_ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
 
 
 logging:
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   level:
     com.wk.ti: debug
     org.springframework: info
+  structured:
+    format:
+      console: ecs # Emits logs in ECS JSON format containing service, traceId, spanId
 
 rate:
   limiting:
@@ -116,5 +103,4 @@ ms:
     import: http://${IMPORT_SERVICE:localhost}:${IMPORT_SERVICE_PORT:8083}
     export: http://${EXPORT_SERVICE:localhost}:${EXPORT_SERVICE_PORT:8084}
     notification: http://${NOTIFICATION_SERVICE:localhost}:${NOTIFICATION_SERVICE_PORT:8085}
-
 
