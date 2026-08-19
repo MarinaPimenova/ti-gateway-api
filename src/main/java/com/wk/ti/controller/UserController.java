@@ -39,7 +39,7 @@ public class UserController {
     @GetMapping("/api/v1/user")
     public ResponseEntity<?> getUser(@AuthenticationPrincipal OidcUser user,
                                      @RequestParam(defaultValue = "knowledge-url") String redirectId) {
-        log.info(format("Authentication is requested redirectId: %s", redirectId));
+        log.info(format("Authentication is requested. RedirectId: %s", redirectId));
         UserDetail userDetail = userDetailExtractorResolver.extract(user);
         return ResponseEntity.ok().body(userDetail);
     }

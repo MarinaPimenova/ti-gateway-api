@@ -40,6 +40,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.*;
 
+import static com.wk.ti.security.service.UserDetailExtractorStrategy.USER_ROLE;
+
 @SuppressWarnings({"rawtypes", "unchecked"})
 @Slf4j
 @Configuration
@@ -190,7 +192,7 @@ public class SecurityConfig {
             Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
 
             try {
-                mappedAuthorities.add(new SimpleGrantedAuthority("admin"));
+                mappedAuthorities.add(new SimpleGrantedAuthority(USER_ROLE));
             } catch (Exception ex) {
                 log.error("Action: authentication. Result: Not Authorized! {} ",
                         ex.getMessage());

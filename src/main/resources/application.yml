@@ -91,13 +91,6 @@ management:
         enabled: true
         endpoint: ${MANAGEMENT_TRACING_EXPORT_ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
 
-
-#  otlp:
-#    tracing:
-#      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
-#      transport: http
-
-# Enable Native JSON Structured Logging (Spring Boot 3.4+)
 logging:
   level:
     com.wk.ti: debug
