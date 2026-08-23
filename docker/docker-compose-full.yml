@@ -110,8 +110,8 @@ services:
       - knowledge-network
 
   # --- Spring Boot Services ---
-  ti-dashboard-ui:
-    container_name: ti-dashboard-ui
+  ti-knowledge-ui:
+    container_name: ti-knowledge-ui
     image: ti-ui-local:latest
     ports:
       - "5000:80"
@@ -366,7 +366,7 @@ services:
     environment:
       SERVER_PORT: 8080
       APPLICATION_URL: ${APPLICATION_URL:-http://localhost:8080}
-      KNOWLEDGE_BASE_URL: ${KNOWLEDGE_BASE_URL:-http://ti-dashboard-ui:5000}
+      KNOWLEDGE_BASE_URL: ${KNOWLEDGE_BASE_URL:-http://ti-knowledge-ui:5000}
       AI_CHATBOT_BASE_URL: ${AI_CHATBOT_BASE_URL:-http://ti-ai-chatbot-ui:7000}
       OKTA_DOMAIN: ${OKTA_DOMAIN}
       OKTA_OAUTH2_CLIENT_ID: ${OKTA_OAUTH2_CLIENT_ID}
