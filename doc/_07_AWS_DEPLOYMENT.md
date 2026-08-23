@@ -337,9 +337,7 @@ RabbitMQ provides asynchronous communication.
 Used for:
 
 * Import jobs
-* Export jobs
-* Audit events
-* Notifications
+* Document Upload jobs
 
 Possible deployment options:
 

@@ -1,0 +1,16 @@
+services:
+  knowledge-postgres:
+    image: postgres:17
+    container_name: ti-knowledge-postgres
+    environment:
+      POSTGRES_DB: ${KNOWLEDGE_DB_NAME:-knowledge_db}
+      POSTGRES_USER: ${KNOWLEDGE_USER:-postgres}
+      POSTGRES_PASSWORD: ${KNOWLEDGE_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./kb-sql:/docker-entrypoint-initdb.d
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

@@ -102,5 +102,4 @@ ms:
     orchestrator: http://${ORCHESTRATOR_SERVICE:localhost}:${ORCHESTRATOR_SERVICE_PORT:8082}
     import: http://${IMPORT_SERVICE:localhost}:${IMPORT_SERVICE_PORT:8083}
     export: http://${EXPORT_SERVICE:localhost}:${EXPORT_SERVICE_PORT:8084}
-    notification: http://${NOTIFICATION_SERVICE:localhost}:${NOTIFICATION_SERVICE_PORT:8085}
 

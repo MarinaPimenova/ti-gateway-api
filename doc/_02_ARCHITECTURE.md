@@ -76,16 +76,18 @@ flowchart TD
 
 Each microservice owns a single business capability.
 
-| Service             | Responsibility |
-|---------------------|----------------|
-| ti-knowledge-ui     | User Interface |
-| ti-gateway-api      | API Gateway, BFF, Authentication |
-| ti-knowledge-api    | Knowledge management |
-| ti-orchestrator-api | Long-running job orchestration |
-| ti-import-api       | Import processing |
-| ti-export-api       | Export processing |
-| ti-audit-api        | Audit logging |
-| ti-notification-api | User notifications |
+| Service                | Responsibility                           |
+|------------------------|------------------------------------------|
+| ti-knowledge-ui        | User Interface                           |
+| ti-gateway-api         | API Gateway, BFF, Authentication         |
+| ti-knowledge-api       | Knowledge management                     |
+| ti-orchestrator-api    | Long-running job orchestration           |
+| ti-import-worker       | Import processing                        |
+| ti-export-api          | Export processing                        |
+| ti-ai-orchestrator-api | Manage AI Chatbot                        |
+| ti-document-worker     | Process (ETL pipeline) uploaded document |
+| ti-document-agent      | Document AI Agent                        |
+| ti-sql-agent           | Question AI Agent                        |
 
 ---
 
@@ -100,13 +102,10 @@ Knowledge Service
     │
     └── Knowledge Database
 
-orchestrator Service
-    │
-    └── Job Database
 
-Audit Service
-    │
-    └── Audit Database
+ti-document-worker
+        |
+        └── Embeddings Database
 ```
 
 ---
@@ -211,31 +210,6 @@ Responsibilities
 
 ---
 
-## ti-audit-api
-
-Stores business audit records.
-
-Examples
-
-- User Login
-- Question Created
-- Question Updated
-- Import Started
-- Import Completed
-- Export Started
-- Export Completed
-
----
-
-## ti-notification-api
-
-Consumes business events.
-
-Current implementation
-
-- Success notifications
-- Failure notifications
-
 Future extensions
 
 - Email
@@ -278,10 +252,8 @@ RabbitMQ is used for long-running operations.
 
 Examples
 
-- Import
-- Export
-- Notifications
-- Audit Logging
+- Import Worker
+- Document Worker
 
 ```
 orchestrator Service
@@ -292,7 +264,7 @@ RabbitMQ
 
 ↓
 
-Import Service
+Import Worker
 
 ↓
 
@@ -304,7 +276,7 @@ ImportCompletedEvent
 
 ↓
 
-Notification Service
+UI is notified
 ```
 
 ---
@@ -362,53 +334,7 @@ ImportCompletedEvent
 
         ▼
 
-Notification Service
-
-Audit Service
-```
-
----
-
-## Export
-
-```text
-User requests export
-
-        │
-
-        ▼
-
-Gateway
-
-        │
-
-        ▼
-
-orchestrator Service
-
-        │
-
-ExportRequestedEvent
-
-        ▼
-
-RabbitMQ
-
-        ▼
-
-Export Service
-
-        │
-
-Generate File
-
-        │
-
-ExportCompletedEvent
-
-        ▼
-
-Notification Service
+UI is notified
 ```
 
 ---

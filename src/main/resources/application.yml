@@ -110,20 +110,28 @@ rate:
       - /swagger-ui/**
       - /v3/api-docs/**
 
+group:
+  admin: ${ADMINS:admin@example.com}
+
 ms:
   cors:
-    allowed-origins: ${ms.services.dashboard-base-url}
+    allowed-origins: ${ms.spa.dashboard-base-url,ms.spa.ai-chatbot-base-url}
   origin: ${APPLICATION_URL:http://localhost:8080}
-  services:
+  spa:
     dashboard-base-url: "${KNOWLEDGE_BASE_URL:http://localhost:5000}"
+    ai-chatbot-base-url: "${AI_CHATBOT_BASE_URL:http://localhost:7000}"
   client-to-url:
     knowledge-url: "${KNOWLEDGE_BASE_URL:http://localhost:5000}/dashboard-page"
+    ai-chatbot-url: "${AI_CHATBOT_BASE_URL:http://localhost:7000}/chat"
   service-name-to-uri:
     knowledge: http://${KNOWLEDGE_SERVICE:localhost}:${KNOWLEDGE_SERVICE_PORT:8081}
     orchestrator: http://${ORCHESTRATOR_SERVICE:localhost}:${ORCHESTRATOR_SERVICE_PORT:8082}
     import: http://${IMPORT_SERVICE:localhost}:${IMPORT_SERVICE_PORT:8083}
     export: http://${EXPORT_SERVICE:localhost}:${EXPORT_SERVICE_PORT:8084}
-    notification: http://${NOTIFICATION_SERVICE:localhost}:${NOTIFICATION_SERVICE_PORT:8085}
+    ai-orchestrator: http://${AI_ORCHESTRATOR_SERVICE:localhost}:${AI_ORCHESTRATOR_SERVICE_PORT:8085}
+    document: http://${DOCUMENT_SERVICE:localhost}:${DOCUMENT_SERVICE_PORT:8086}
+    document-agent: http://${DOCUMENT_AGENT:localhost}:${DOCUMENT_AGENT_PORT:8087}
+    sql-agent: http://${SQL_AGENT:localhost}:${SQL_AGENT_PORT:8088}
 
 springdoc:
   api-docs:
@@ -134,9 +142,15 @@ springdoc:
         url: "${ms.origin}/knowledge/v3/api-docs"
       - name: "02 - Orchestrator Service"
         url: "${ms.origin}/orchestrator/v3/api-docs"
-      - name: "03 - Import Service"
+      - name: "03 - Import Worker"
         url: "${ms.origin}/import/v3/api-docs"
       - name: "04 - Export Service"
         url: "${ms.origin}/export/v3/api-docs"
-      - name: "05 - Notification Service"
-        url: "${ms.origin}/notification/v3/api-docs"
+      - name: "05 - AI Orchestrator Service"
+        url: "${ms.origin}/ai-rchestrator/v3/api-docs"
+      - name: "06 - AI Document Worker"
+        url: "${ms.origin}/document/v3/api-docs"
+      - name: "07 - AI Document Agent"
+        url: "${ms.origin}/document-agent/v3/api-docs"
+      - name: "08 - AI SQL Agent"
+        url: "${ms.origin}/sql-agent/v3/api-docs"

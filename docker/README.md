@@ -1,6 +1,35 @@
 # Run Application
 
-## Run only Redis 
+## Naming convention
+
+| Type                   | Format                | Example                                    |
+|------------------------|-----------------------|--------------------------------------------|
+| **UI**                 | `ti-<domain>-ui`      | `ti-dashboard-ui`                          |
+| **API / Microservice** | `ti-<domain>-api`     | `ti-knowledge-api`                         |
+| **Worker**             | `ti-<domain>-worker`  | `ti-import-worker`                         |
+| **AI Agent**           | `ti-<domain>-agent`   | `ti-sql-agent`                             |
+| **Infrastructure**     | Original product name | `rabbitmq`, `postgres`, `redis`, `grafana` |
+
+---
+
+**Service Names**
+
+|                           |               |
+|---------------------------|--------------------------|
+| `dashboard-ui`            | `ti-dashboard-ui`        |
+| `ai-chatbot-ui`           | `ti-ai-chatbot-ui`       |
+| `knowledge-service`       | `ti-knowledge-api`       |
+| `orchestrator-service`    | `ti-orchestrator-api`    |
+| `import-service`          | `ti-import-worker`       |
+| `export-service`          | `ti-export-api`          |
+| `ai-orchestrator-service` | `ti-ai-orchestrator-api` |
+| `document-service`        | `ti-document-api`        |
+| `document-agent`          | `ti-document-agent`      |
+| `sql-agent`               | `ti-sql-agent`           |
+| `localhost`               | `ti-gateway-api`         |
+| `rabbitmq-orchestrator`   | `rabbitmq`               |
+
+## Run all infrastructure services separately 
 
 ```shell
 cd docker

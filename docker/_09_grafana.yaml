@@ -1,0 +1,15 @@
+services:
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: ti-grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-admin}
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  grafana-data:

@@ -1,0 +1,8 @@
+services:
+  zipkin:
+    image: openzipkin/zipkin:3
+    container_name: ti-zipkin
+    ports:
+      - "9411:9411"
+    restart: unless-stopped
+

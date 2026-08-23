@@ -53,57 +53,72 @@ flowchart TD
 
     UI["React SPA<br/>Vite + Nginx"]
 
+    AI_Chatbot_UI["React SPA<br/>Vite + Nginx"]
+    
     Gateway["ti-gateway-api<br/>API Gateway + BFF"]
 
     Knowledge["ti-knowledge-api"]
 
+    Export["ti-export-api"]
+    
     Orchestrator["ti-orchestrator-api"]
 
     Import["ti-import-api"]
 
-    Export["ti-export-api"]
+    AI_Orchestrator["ti-ai-orchestrator-api"]
 
-    Audit["ti-audit-api"]
+    Document_Worker["ti-document-worker"]
 
-    Notification["ti-notification-api"]
+    Document_Agent["ti-document-agent"]
 
+    SQL_Agent["ti-sql-agent"]  
+    
     Rabbit["RabbitMQ"]
 
-    DB["PostgreSQL Databases"]
+    Knowledge_DB["PostgreSQL Databases"]
 
+    Document_DB["PostgreSQL Databases"]
+    
     UI --> Gateway
-
+    AI_Chatbot_UI --> Gateway
+    
     Gateway --> Knowledge
+    Gateway --> Export
     Gateway --> Orchestrator
+    Gateway --> AI_Orchestrator
 
     Orchestrator --> Rabbit
+    AI_Orchestrator --> Rabbit
 
     Rabbit --> Import
-    Rabbit --> Export
-    Rabbit --> Audit
-    Rabbit --> Notification
+    Rabbit --> Document_Worker
 
-    Knowledge --> DB
-    Import --> DB
-    Export --> DB
-    Orchestrator --> DB
-    Audit --> DB
+    Knowledge --> Knowledge_DB
+    Import --> Knowledge_DB
+    Export --> Knowledge_DB
+
+    Document_Worker --> Document_DB
+    Document_Agent --> Document_DB
+    SQL_Agent --> Knowledge_DB
 ````
 
 ---
 
 # Microservices
 
-| Service             | Responsibility                                      |
-| ------------------- | --------------------------------------------------- |
-| ti-ui               | React frontend, dashboard, user interactions        |
-| ti-gateway-api      | API Gateway, BFF, OAuth2 Client, routing, security  |
-| ti-knowledge-api    | Manage questions, answers, resources, code examples |
-| ti-orchestrator-api | Manage long-running import/export workflows         |
-| ti-import-api       | Process Excel/CSV imports                           |
-| ti-export-api       | Generate export files                               |
-| ti-audit-api        | Store business audit records                        |
-| ti-notification-api | Process user notifications                          |
+| Service                | Responsibility                                             |
+|------------------------|------------------------------------------------------------|
+| ti-ui                  | TI Dashboard: React frontend, dashboard, user interactions |
+| ti-ai-chatbot-ui       | AI Chatbot: React frontend, dashboard, user interactions   |
+| ti-gateway-api         | API Gateway, BFF, OAuth2 Client, routing, security         |
+| ti-knowledge-api       | Manage questions, answers, resources, code examples        |
+| ti-orchestrator-api    | Manage long-running import/export workflows                |
+| ti-import-worker       | Process Excel/CSV imports                                  |
+| ti-export-api          | Generate export files                                      |
+| ti-ai-orchestrator-api | Manage AI Chatbot                                          |
+| ti-document-worker     | Process (ETL pipeline) uploaded document                   |
+| ti-document-agent      | Document AI Agent                                          |
+| ti-sql-question-agent  | Question AI Agent                                          |
 
 ---
 
@@ -124,9 +139,7 @@ Used for synchronous operations:
 Used for asynchronous operations:
 
 * Import processing
-* Export processing
-* Audit events
-* Notifications
+* Upload Document processing
 
 Example:
 
@@ -135,7 +148,7 @@ ImportRequested
 
       ↓
 
-Import Service
+Import Worker
 
       ↓
 
@@ -143,7 +156,7 @@ ImportCompleted
 
       ↓
 
-Audit + Notification
+UI is notified (SSE mechanism)
 ```
 
 ---
@@ -158,14 +171,11 @@ ti-knowledge-api
         └── Knowledge Database
 
 
-ti-orchestrator-api
+ti-document-worker
         |
-        └── Job Database
+        └── Embeddings Database
 
 
-ti-audit-api
-        |
-        └── Audit Database
 ```
 
 Benefits:
@@ -412,9 +422,7 @@ The platform is AWS-ready.
 Possible deployment:
 
 ```
-CloudFront
 
-    ↓
 
 Application Load Balancer
 

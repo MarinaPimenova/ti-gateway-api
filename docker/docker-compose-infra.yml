@@ -4,29 +4,36 @@ services:
   # Databases & Middleware
   # ============================================================
 
-  redis-session:
-    container_name: redis-session
+  redis:
+    container_name: ti-redis
     image: redis:7-alpine
     command: redis-server
     volumes:
       - redis-data:/data
+    ports:
+      - "6379:6379"
     network_mode: host
 
   rabbitmq:
-    container_name: ti-rabbitmq-orchestrator
-    image: rabbitmq:3.13-management
+    container_name: ti-rabbitmq
+    image: rabbitmq:4-management
     hostname: rabbitmq
     restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: ${RM_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RM_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    ports:
+      - "15672:15672"
+      - "5672:5672"
     network_mode: host
 
   knowledge-postgres:
     image: postgres:17
-    container_name: knowledge-postgres
+    container_name: ti-knowledge-postgres
     environment:
       POSTGRES_DB: ${KNOWLEDGE_DB_NAME:-knowledge_db}
       POSTGRES_USER: ${KNOWLEDGE_USER:-postgres}
@@ -36,25 +43,41 @@ services:
     volumes:
       - ./kb-sql:/docker-entrypoint-initdb.d
       - postgres-data:/var/lib/postgresql/data
-    networks:
-      - knowledge-network
+    network_mode: host
 
+  pgvector-postgres:
+    image: ankane/pgvector
+    container_name: ti-pgvector-postgres
+    environment:
+      POSTGRES_DB: ${DOCUMENT_DB_NAME:-document_db}
+      POSTGRES_USER: ${DOCUMENT_USER}
+      POSTGRES_PASSWORD: ${DOCUMENT_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+      - ./pgvector-scripts:/docker-entrypoint-initdb.d
+    network_mode: host
   # ============================================================
   # Observability
   # ============================================================
 
   prometheus:
     image: prom/prometheus:v2.51.0
-    container_name: prometheus
+    container_name: ti-prometheus
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "9090:9090"
     volumes:
       - ./observability/prometheus/prometheus-local.yml:/etc/prometheus/prometheus.yml:ro
+    network_mode: host
 
   loki:
     image: grafana/loki:2.9.5
-    container_name: loki
+    container_name: ti-loki
     restart: unless-stopped
+    ports:
+      - "3100:3100"
     command:
       - -config.file=/etc/loki/loki-config.yaml
     volumes:
@@ -68,7 +91,7 @@ services:
 
   alloy:
     image: grafana/alloy:latest
-    container_name: grafana-alloy
+    container_name: ti-grafana-alloy
     restart: unless-stopped
 
     command:
@@ -88,13 +111,17 @@ services:
 
   zipkin:
     image: openzipkin/zipkin:3
-    container_name: zipkin
+    container_name: ti-zipkin
+    ports:
+      - "9411:9411"
     restart: unless-stopped
     network_mode: host
 
   grafana:
     image: grafana/grafana:10.4.0
-    container_name: grafana
+    container_name: ti-grafana
+    ports:
+      - "3000:3000"
     restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-admin}
@@ -110,6 +137,7 @@ services:
 
 volumes:
   postgres-data:
+  pgvector-data:
   redis-data:
   rabbitmq-data:
   loki-data:
