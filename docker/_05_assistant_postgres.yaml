@@ -1,0 +1,23 @@
+services:
+  ti-assistant-db:
+    image: postgres:17
+    container_name: ti-assistant-db
+    environment:
+      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assitant-db}
+      POSTGRES_USER: ${ASSISTANT_USER:-assistant_user}
+      POSTGRES_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
+    ports:
+      - "5434:5432"
+    volumes:
+      # initialization scripts
+      - ./assistant-init-scripts:/docker-entrypoint-initdb.d
+      # PostgreSQL data
+      - assistant-db-data:/var/lib/postgresql/data
+    networks:
+      - knowledge-network
+
+networks:
+  knowledge-network:
+    name: knowledge-network
+volumes:
+  assistant-db-data:
