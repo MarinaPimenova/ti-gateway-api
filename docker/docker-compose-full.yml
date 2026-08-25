@@ -71,9 +71,9 @@ services:
     image: postgres:17
     container_name: ti-assistant-db
     environment:
-      POSTGRES_DB: ${KNOWLEDGE_DB_NAME:-assitant-db}
-      POSTGRES_USER: ${KNOWLEDGE_USER:-assistant_user}
-      POSTGRES_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
+      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assitant-db}
+      POSTGRES_USER: ${ASSISTANT_USER:-assistant_user}
+      POSTGRES_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
     ports:
       - "5434:5432"
     volumes:
@@ -257,8 +257,9 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
       UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH}
-
-      MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
+      ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
       OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
       OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
@@ -330,6 +331,9 @@ services:
       DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
       DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
       DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
+      ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
       MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
       OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
@@ -358,7 +362,10 @@ services:
       KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
-      MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
+      ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
+
       OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
       OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
