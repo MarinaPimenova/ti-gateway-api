@@ -47,41 +47,52 @@ The platform follows:
 - Asynchronous Processing
 - Stateless Services
 
-
 ```mermaid
-flowchart TD
+flowchart LR
 
-    UI["React SPA<br/>Vite + Nginx"]
+    subgraph Frontends["Frontend Applications"]
+        direction TB
+        UI["TI Knowledge Dashboard<br/>React SPA<br/>Vite + Nginx"]
+        AI_Chatbot_UI["AI Chatbot<br/>React SPA<br/>Vite + Nginx"]
+    end
 
-    AI_Chatbot_UI["React SPA<br/>Vite + Nginx"]
-    
     Gateway["ti-gateway-api<br/>API Gateway + BFF"]
 
-    Knowledge["ti-knowledge-api"]
+    subgraph APIs["Backend APIs"]
+        direction TB
+        Knowledge["ti-knowledge-api"]
+        Export["ti-export-api"]
+        Orchestrator["ti-orchestrator-api"]
+        AI_Orchestrator["ti-ai-orchestrator-api"]
+    end
 
-    Export["ti-export-api"]
-    
-    Orchestrator["ti-orchestrator-api"]
+    subgraph Messaging["Messaging"]
+        direction TB
+        Rabbit["RabbitMQ"]
+    end
 
-    Import["ti-import-api"]
+    subgraph Agents["AI Agents"]
+        direction TB
+        Document_Agent["ti-document-agent"]
+        SQL_Agent["ti-sql-agent"]
+    end
 
-    AI_Orchestrator["ti-ai-orchestrator-api"]
+    subgraph Workers["Workers"]
+        direction TB
+        Import["ti-import-worker"]
+        Document_Worker["ti-document-worker"]
+    end
 
-    Document_Worker["ti-document-worker"]
+    subgraph Databases["Databases"]
+        direction TB
+        Knowledge_DB["Knowledge DB<br/>PostgreSQL"]
+        Document_DB["Document DB<br/>PostgreSQL + PGVector"]
+        Assistant_DB["Assistant DB<br/>PostgreSQL"]
+    end
 
-    Document_Agent["ti-document-agent"]
-
-    SQL_Agent["ti-sql-agent"]  
-    
-    Rabbit["RabbitMQ"]
-
-    Knowledge_DB["PostgreSQL Databases"]
-
-    Document_DB["PostgreSQL Databases"]
-    
     UI --> Gateway
     AI_Chatbot_UI --> Gateway
-    
+
     Gateway --> Knowledge
     Gateway --> Export
     Gateway --> Orchestrator
@@ -93,14 +104,21 @@ flowchart TD
     Rabbit --> Import
     Rabbit --> Document_Worker
 
+    AI_Orchestrator --> Document_Agent
+    AI_Orchestrator --> SQL_Agent
+
     Knowledge --> Knowledge_DB
-    Import --> Knowledge_DB
     Export --> Knowledge_DB
+    Import --> Knowledge_DB
+    SQL_Agent --> Knowledge_DB
 
     Document_Worker --> Document_DB
     Document_Agent --> Document_DB
-    SQL_Agent --> Knowledge_DB
-````
+
+    AI_Orchestrator --> Assistant_DB
+    Document_Agent --> Assistant_DB
+    SQL_Agent --> Assistant_DB
+```
 
 ---
 
@@ -108,7 +126,7 @@ flowchart TD
 
 | Service                | Responsibility                                             |
 |------------------------|------------------------------------------------------------|
-| ti-ui                  | TI Dashboard: React frontend, dashboard, user interactions |
+| ti-knowledge-ui        | TI Dashboard: React frontend, dashboard, user interactions |
 | ti-ai-chatbot-ui       | AI Chatbot: React frontend, dashboard, user interactions   |
 | ti-gateway-api         | API Gateway, BFF, OAuth2 Client, routing, security         |
 | ti-knowledge-api       | Manage questions, answers, resources, code examples        |
@@ -119,6 +137,14 @@ flowchart TD
 | ti-document-worker     | Process (ETL pipeline) uploaded document                   |
 | ti-document-agent      | Document AI Agent                                          |
 | ti-sql-question-agent  | Question AI Agent                                          |
+
+# Databases
+
+| Database        | Responsibility                                                                      |
+|-----------------|-------------------------------------------------------------------------------------|
+| ti-knowledge-db | Store questions, their answers and their metadata such as:Tags,question level, etc. |
+| ti-document-db  | AI Chatbot: Store embeddings of the uploaded documents                              |
+| ti-assistant-db | AI Chatbot: Store users messages and the results of their processing                |
 
 ---
 
