@@ -17,7 +17,262 @@ The observability solution includes:
 * Structured JSON Logging
 
 ---
+### Observability tools
 
+* **Micrometer** – the metrics library used in Spring Boot. It collects application metrics (HTTP requests, JVM, custom counters and timers) and exposes them to monitoring systems.
+
+* **Prometheus** – a time-series database that scrapes metrics from applications (usually from the `/actuator/prometheus` endpoint) and stores them for querying with PromQL.
+
+* **Grafana** – a visualization platform used to build dashboards and alerts from Prometheus metrics (and logs from Loki, if used).
+
+* **OpenTelemetry** – the standard framework for collecting distributed traces, metrics, and logs. In Spring Boot, it propagates trace IDs across microservices and exports telemetry to a backend.
+
+### Local environment: OpenTelemetry, Zipkin
+
+**Keep OpenTelemetry**; **use Zipkin as the local tracing backend.**
+
+They solve different problems:
+
+* OpenTelemetry = instrumentation and **trace** **generation**.
+
+* Zipkin = **trace storage** and visualization.
+
+A typical local setup is:
+
+`Spring Boot + Micrometer Tracing → OpenTelemetry → Zipkin`
+
+---
+Yes. For AWS EKS, the observability architecture is slightly different. The key point is that Fluent Bit is only for logs—it does not collect metrics or traces.
+
+### Recommended AWS EKS architecture
+
+![](blob\:https://chatgpt.com/6f469c99-20c7-4e7b-a3af-61cfa3138c0e)
+
+Logs
+
+stdout
+
+Fluent Bit
+
+CloudWatch Logs
+
+Metrics
+
+Actuator
+
+Prometheus
+
+AMP / Grafana
+
+Traces
+
+OpenTelemetry
+
+OTel Collector
+
+AWS X-Ray
+
+### What each component does
+
+|
+Signal
+
+|
+
+Collected by
+
+|
+
+Stored in
+
+|
+| --- | --- | --- |
+|
+
+Logs
+
+|
+
+Fluent Bit
+
+|
+
+CloudWatch Logs
+
+|
+|
+
+Metrics
+
+|
+
+Prometheus scraper
+
+|
+
+Amazon Managed Prometheus (AMP)
+
+|
+|
+
+Dashboards
+
+|
+
+Grafana
+
+|
+
+Amazon Managed Grafana
+
+|
+|
+
+Traces
+
+|
+
+OpenTelemetry
+
+|
+
+AWS X-Ray
+
+|
+
+### Dependencies for AWS EKS
+
+You remove Zipkin and keep OpenTelemetry.
+
+XML
+
+<!-- Actuator -->
+
+<dependency>
+
+<groupId>org.springframework.boot</groupId>
+
+<artifactId>spring-boot-starter-actuator</artifactId>
+
+</dependency>
+
+<!-- Prometheus metrics -->
+
+<dependency>
+
+<groupId>io.micrometer</groupId>
+
+<artifactId>micrometer-registry-prometheus</artifactId>
+
+</dependency>
+
+<!-- Micrometer Tracing -> OpenTelemetry -->
+
+<dependency>
+
+<groupId>io.micrometer</groupId>
+
+<artifactId>micrometer-tracing-bridge-otel</artifactId>
+
+</dependency>
+
+<!-- OTLP exporter (to OpenTelemetry Collector) -->
+
+<dependency>
+
+<groupId>io.opentelemetry</groupId>
+
+<artifactId>opentelemetry-exporter-otlp</artifactId>
+
+</dependency>
+
+### Remove
+
+XML
+
+<!-- Local only -->
+
+<dependency>
+
+<groupId>io.opentelemetry</groupId>
+
+<artifactId>opentelemetry-exporter-zipkin</artifactId>
+
+</dependency>
+
+That's the only dependency change.
+
+### Why OTLP instead of X-Ray dependency?
+
+The modern AWS recommendation is:
+
+* Application → OTLP
+
+* OpenTelemetry Collector → AWS X-Ray
+
+Your application remains vendor-neutral and can run locally with Zipkin or in AWS without code changes.
+
+### Environment-Specific Configuration
+
+Use profiles rather than changing code.
+
+**`application-local.yml`**
+
+```yaml
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    zipkin:
+      tracing:
+        endpoint: http://zipkin:9411/api/v2/spans
+
+```
+
+**`application-aws.yml`**
+
+```yaml
+management:
+  tracing:
+    sampling:
+      probability: 0.1
+    otel:
+      exporter:
+        otlp:
+          endpoint: http://otel-collector:4318
+
+```
+
+> **Note:** The OpenTelemetry Collector running in EKS exports to AWS X-Ray.
+
+### Fluent Bit clarification
+
+A common interview question is:
+
+> What is Fluent Bit responsible for?
+
+Answer: Fluent Bit is a lightweight log forwarder. It reads container stdout/stderr logs from Kubernetes nodes and sends them to CloudWatch Logs. It does not collect Prometheus metrics or distributed traces.
+
+### Final dependency comparison
+
+| Dependency | Local Docker | AWS EKS |
+| --- | --- | --- |
+| `spring-boot-starter-actuator` | ✅ | ✅ |
+| `micrometer-registry-prometheus` | ✅ | ✅ |
+| `micrometer-tracing-bridge-otel` | ✅ | ✅ |
+| `opentelemetry-exporter-zipkin` | ✅ | ❌ |
+| `opentelemetry-exporter-otlp` | ❌ | ✅ |
+
+### Summary
+
+* Local Docker: Use Zipkin as the tracing backend (`opentelemetry-exporter-zipkin`).
+
+* AWS EKS: Replace Zipkin with the OTLP exporter (`opentelemetry-exporter-otlp`), which sends traces to the OpenTelemetry Collector and then to AWS X-Ray.
+
+* The Actuator, Prometheus registry, and Micrometer Tracing dependencies remain the same in both environments.
+
+
+---
 # Architecture
 
 ```mermaid

@@ -1,0 +1,10 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: ti-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus-local.yml:/etc/prometheus/prometheus.yml:ro
+

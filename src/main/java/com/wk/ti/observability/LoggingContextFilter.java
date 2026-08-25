@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Set;
 
 import static com.wk.ti.observability.MetricsContract.*;
 
@@ -17,13 +18,21 @@ import static com.wk.ti.observability.MetricsContract.*;
 @Component
 @Slf4j
 public class LoggingContextFilter implements Filter {
+    // Set of headers to sanitize/redact
+    private static final Set<String> SENSITIVE_HEADERS = Set.of(
+            "authorization",
+            "cookie",
+            "set-cookie",
+            "proxy-authorization",
+            "x-api-key"
+    );
     private final Counter failedRequestsCounter;
     private final Timer durationRequestTimer;
 
     public LoggingContextFilter(
             MeterRegistry meterRegistry) {
         this.failedRequestsCounter = meterRegistry.counter(METRIC_FAILED_REQUESTS_COUNT);
-        this.durationRequestTimer = meterRegistry.timer(METRIC_DURATION_REQUEST_COUNT);
+        this.durationRequestTimer = meterRegistry.timer(METRIC_REQUEST_DURATION);
     }
 
     @Override
@@ -50,16 +59,23 @@ public class LoggingContextFilter implements Filter {
 
     private void logRequest(HttpServletRequest request) {
         log.info("Incoming Request: [{}] {}", request.getMethod(), request.getRequestURI());
-        request.getHeaderNames().asIterator().forEachRemaining(header ->
-                log.info("Header: {} = {}", header, request.getHeader(header))
-        );
+        request.getHeaderNames().asIterator().forEachRemaining(header -> {
+            String value = isSensitiveHeader(header)
+                    ? "[REDACTED]"
+                    : request.getHeader(header);
+            log.info("Header: {} = {}", header, value);
+        });
+    }
+
+    private boolean isSensitiveHeader(String header) {
+        return header != null && SENSITIVE_HEADERS.contains(header.toLowerCase());
     }
 
     private void logResponse(
             HttpServletRequest request,
             HttpServletResponse httpResponse,
             long start) {
-        long requestDuration = (System.currentTimeMillis() - start) ;
+        long requestDuration = (System.currentTimeMillis() - start);
         log.info("Outgoing Response for [{}] {}: Status = {}, Total elapsed time: {} ms",
                 request.getMethod(),
                 request.getRequestURI(),

@@ -172,7 +172,7 @@ public class LoggingContextFilter implements Filter {
             
             // Extract from headers or security context
             String userId = httpRequest.getHeader("X-User-ID");
-            String requestId = httpRequest.getHeader("X-Request-ID");
+            String requestId = httpRequest.getHeader("X-Request-Id");
 
             if (userId != null) MDC.put("userId", userId);
             if (requestId != null) MDC.put("requestId", requestId);

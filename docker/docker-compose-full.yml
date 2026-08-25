@@ -1,16 +1,15 @@
-version: '3.8'
 
 x-logging: &default-logging
   driver: loki
   options:
-    loki-url: "http://localhost:3100/loki/api/v1/push"
+    loki-url: "http://loki:3100/loki/api/v1/push"
     loki-batch-size: "400"
     max-size: "50m"
 
 services:
   # --- Databases & Middleware ---
-  redis-session:
-    container_name: redis-session
+  redis:
+    container_name: redis
     image: redis:7-alpine
     command: redis-server
     volumes:
@@ -21,33 +20,67 @@ services:
       - knowledge-network
 
   rabbitmq:
-    container_name: ti-rabbitmq-orchestrator
-    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    image: rabbitmq:4-management
     hostname: rabbitmq
     restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: ${RM_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RM_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     ports:
       - "15672:15672"
       - "5672:5672"
     networks:
       - knowledge-network
 
-  knowledge-postgres:
+  ti-knowledge-db:
     image: postgres:17
-    container_name: knowledge-postgres
+    container_name: ti-knowledge-db
     environment:
       POSTGRES_DB: ${KNOWLEDGE_DB_NAME:-knowledge_db}
-      POSTGRES_USER: ${KNOWLEDGE_USER:-postgres}
-      POSTGRES_PASSWORD: ${KNOWLEDGE_PASSWORD:-postgres}
+      POSTGRES_USER: ${KNOWLEDGE_USER:-knowledge_user}
+      POSTGRES_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
     ports:
       - "5432:5432"
     volumes:
-      - ./kb-sql:/docker-entrypoint-initdb.d
-      - postgres-data:/var/lib/postgresql/data
+      - ./knowledge-init-scripts:/docker-entrypoint-initdb.d
+      - knowledge-db-data:/var/lib/postgresql/data
+    networks:
+      - knowledge-network
+
+  ti-document-db:
+    image: ankane/pgvector
+    container_name: ti-document-db
+    environment:
+      POSTGRES_DB: ${DOCUMENT_DB_NAME:-document_db}
+      POSTGRES_USER: ${DOCUMENT_USER:-postgres}
+      POSTGRES_PASSWORD: ${DOCUMENT_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"
+    volumes:
+      - document-db-data:/var/lib/postgresql/data
+      - ./document-init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - knowledge-network
+
+  ti-assistant-db:
+    image: postgres:17
+    container_name: ti-assistant-db
+    environment:
+      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assitant-db}
+      POSTGRES_USER: ${ASSISTANT_USER:-assistant_user}
+      POSTGRES_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
+    ports:
+      - "5434:5432"
+    volumes:
+      # initialization scripts
+      - ./assistant-init-scripts:/docker-entrypoint-initdb.d
+      # PostgreSQL data
+      - assistant-db-data:/var/lib/postgresql/data
     networks:
       - knowledge-network
 
@@ -68,6 +101,7 @@ services:
     command: [ "-config.file=/etc/loki/loki-config.yaml" ]
     volumes:
       - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/tmp/loki
     ports:
       - "3100:3100"
     networks:
@@ -89,57 +123,37 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASS:-admin}
     volumes:
-      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./observability/grafana/provisioning-full:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
     networks:
       - knowledge-network
 
   # --- Spring Boot Services ---
-  dashboard-ui:
-    container_name: dashboard-ui
+  ti-knowledge-ui:
+    container_name: ti-knowledge-ui
     image: ti-ui-local:latest
     ports:
       - "5000:80"
     networks:
       - knowledge-network
 
-  gateway-service:
-    container_name: gateway-service
-    image: gateway-local:latest
-    environment:
-      SERVER_PORT: 8080
-      SPRING_APPLICATION_NAME: ti-gateway-api
-      APPLICATION_URL: ${APPLICATION_URL}
-      KNOWLEDGE_BASE_URL: ${KNOWLEDGE_BASE_URL:-http://dashboard-ui:5000}
-      OKTA_DOMAIN: ${OKTA_DOMAIN}
-      OKTA_OAUTH2_CLIENT_ID: ${OKTA_OAUTH2_CLIENT_ID}
-      OKTA_OAUTH2_CLIENT_SECRET: ${OKTA_OAUTH2_CLIENT_SECRET}
-      SESSION_SSL_ENABLED: ${SESSION_SSL_ENABLED}
-      SESSION_CACHE_HOST: redis-session
-      SESSION_CACHE_PORT: ${SESSION_CACHE_PORT}
-      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
-      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
-    logging: *default-logging
-    depends_on:
-      - loki
-      - prometheus
-      - zipkin
-      - redis-session
+  ti-ai-chatbot-ui:
+    container_name: ti-ai-chatbot-ui
+    image: ti-ai-chatbot-local:latest
     ports:
-      - "8080:8080"
+      - "7000:80"
     networks:
       - knowledge-network
 
-  knowledge-service:
-    container_name: knowledge-service
+  ti-knowledge-api:
+    container_name: ti-knowledge-api
     image: knowledge-local:latest
     environment:
       SERVER_PORT: 8081
-      SPRING_APPLICATION_NAME: ti-knowledge-api
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL}
-      KNOWLEDGE_USER: ${KNOWLEDGE_USER}
-      KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD}
-      #SPRING_RABBITMQ_HOST: rabbitmq
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
+      KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
+      KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     logging: *default-logging
@@ -147,17 +161,278 @@ services:
       - loki
       - prometheus
       - zipkin
-      - knowledge-postgres
-      - rabbitmq
+      - ti-knowledge-db
     ports:
       - "8081:8081"
     networks:
       - knowledge-network
 
+  ti-orchestrator-api:
+    container_name: ti-orchestrator-api
+    image: orchestrator-local:latest
+    volumes:
+      - import-storage:${IMPORT_STORAGE_PATH}
+    environment:
+      SERVER_PORT: 8082
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      IMPORT_STORAGE_PATH: ${IMPORT_STORAGE_PATH:-/data/import}
+      ADMINS: ${ADMINS}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - rabbitmq
+    ports:
+      - "8082:8082"
+    networks:
+      - knowledge-network
+
+  ti-import-worker:
+    container_name: ti-import-worker
+    image: import-local:latest
+    environment:
+      SERVER_PORT: 8083
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
+      KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
+      KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      ADMINS: ${ADMINS}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - ti-knowledge-db
+      - rabbitmq
+    ports:
+      - "8083:8083"
+    networks:
+      - knowledge-network
+
+  ti-export-api:
+    container_name: ti-export-api
+    image: export-local:latest
+    environment:
+      SERVER_PORT: 8084
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
+      KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
+      KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      ADMINS: ${ADMINS}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - ti-knowledge-db
+      - rabbitmq
+    ports:
+      - "8084:8084"
+    networks:
+      - knowledge-network
+
+  ti-ai-orchestrator-api:
+    container_name: ti-ai-orchestrator-api
+    image: ai-orchestrator-local:latest
+    volumes:
+      - upload-storage:${UPLOAD_STORAGE_PATH}
+    environment:
+      SERVER_PORT: 8085
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
+      ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
+      OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+      OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
+      OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
+      CHAT_MODEL: ${CHAT_MODEL}
+
+      ADMINS: ${ADMINS}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - rabbitmq
+    ports:
+      - "8085:8085"
+    networks:
+      - knowledge-network
+
+  ti-document-worker:
+    container_name: ti-document-worker
+    image: document-local:latest
+    environment:
+      SERVER_PORT: 8086
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
+      DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
+      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
+      OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+      OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
+      OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
+      CHAT_MODEL: ${CHAT_MODEL:-gpt-4.1-mini-2025-04-14}
+      IMAGE_MODEL: ${IMAGE_MODEL}
+      IMAGE_AI_COMPLETIONS_PATH: ${IMAGE_AI_COMPLETIONS_PATH}
+
+      PGVECTOR_INDEX_TYPE: ${PGVECTOR_INDEX_TYPE:-HNSW}
+      PGVECTOR_DISTANCE_TYPE: ${PGVECTOR_DISTANCE_TYPE:-COSINE_DISTANCE}
+      PGVECTOR_DIMENSIONS: ${PGVECTOR_DIMENSIONS:-1024}
+      PGVECTOR_INITIALIZE_SCHEMA: ${PGVECTOR_INITIALIZE_SCHEMA:-false}
+      PGVECTOR_SCHEMA_NAME: ${PGVECTOR_SCHEMA_NAME:-public}
+      PGVECTOR_TABLE_NAME: ${PGVECTOR_TABLE_NAME:-vector_store}
+      PGVECTOR_MAX_DOCUMENT_BATCH_SIZE: ${PGVECTOR_MAX_DOCUMENT_BATCH_SIZE:-10000}
+
+      ADMINS: ${ADMINS}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - ti-document-db
+      - rabbitmq
+    ports:
+      - "8086:8086"
+    networks:
+      - knowledge-network
+
+  ti-document-agent:
+    container_name: ti-document-agent
+    image: ti-document-agent-local:latest
+    environment:
+      SERVER_PORT: 8087
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
+      DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
+      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
+      ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
+      MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
+      OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+      OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
+      OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
+      CHAT_MODEL: ${CHAT_MODEL:-gpt-4.1-mini-2025-04-14}
+      ADMINS: ${ADMINS}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - ti-document-db
+    ports:
+      - "8087:8087"
+    networks:
+      - knowledge-network
+
+  ti-sql-agent:
+    container_name: ti-sql-agent
+    image: ti-sql-agent-local:latest
+    environment:
+      SERVER_PORT: 8088
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
+      KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
+      KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
+      ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
+
+      OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
+      OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
+      OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
+      CHAT_MODEL: ${CHAT_MODEL}
+      ADMINS: ${ADMINS:-user}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - ti-knowledge-db
+    ports:
+      - "8088:8088"
+    networks:
+      - knowledge-network
+
+  localhost:
+    container_name: localhost
+    image: gateway-local:latest
+    environment:
+      SERVER_PORT: 8080
+      APPLICATION_URL: ${APPLICATION_URL:-http://localhost:8080}
+      KNOWLEDGE_BASE_URL: ${KNOWLEDGE_BASE_URL:-http://ti-knowledge-ui:5000}
+      AI_CHATBOT_BASE_URL: ${AI_CHATBOT_BASE_URL:-http://ti-ai-chatbot-ui:7000}
+      OKTA_DOMAIN: ${OKTA_DOMAIN}
+      OKTA_OAUTH2_CLIENT_ID: ${OKTA_OAUTH2_CLIENT_ID}
+      OKTA_OAUTH2_CLIENT_SECRET: ${OKTA_OAUTH2_CLIENT_SECRET}
+      SESSION_SSL_ENABLED: ${SESSION_SSL_ENABLED:-false}
+      SESSION_CACHE_HOST: redis
+      SESSION_CACHE_PORT: ${SESSION_CACHE_PORT:-6379}
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+
+      KNOWLEDGE_SERVICE: ${KNOWLEDGE_SERVICE:-ti-knowledge-api}
+      ORCHESTRATOR_SERVICE: ${ORCHESTRATOR_SERVICE:-ti-orchestrator-api}
+      IMPORT_SERVICE: ${IMPORT_SERVICE:-ti-import-worker}
+      EXPORT_SERVICE: ${EXPORT_SERVICE:-ti-export-api}
+      AI_ORCHESTRATOR_SERVICE: ${AI_ORCHESTRATOR_SERVICE:-ti-ai-orchestrator-api}
+      DOCUMENT_SERVICE: ${DOCUMENT_SERVICE:-ti-document-worker}
+      DOCUMENT_AGENT: ${DOCUMENT_AGENT:-ti-document-agent}
+      SQL_AGENT: ${SQL_AGENT:-ti-sql-agent}
+
+    logging: *default-logging
+    depends_on:
+      - loki
+      - prometheus
+      - zipkin
+      - redis
+    ports:
+      - "8080:8080"
+    networks:
+      - knowledge-network
+
 volumes:
-  postgres-data:
+  knowledge-db-data:
+  document-db-data:
+  assistant-db-data:
+  import_storage:
+  upload_storage:
   redis-data:
   rabbitmq-data:
+  loki-data:
+  grafana-data:
 
 networks:
   knowledge-network:

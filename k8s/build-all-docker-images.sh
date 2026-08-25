@@ -20,5 +20,5 @@ docker ps -qa
 
 ./build-docker-image.sh ti-export-api export "$path_to_repo"
 
-./build-docker-image.sh ti-notification-api notification "$path_to_repo"
+./build-docker-image.sh ti-ai-orchestrator-api ai-orchrstarator "$path_to_repo"
 

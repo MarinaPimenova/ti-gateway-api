@@ -15,8 +15,8 @@ path_to_repo=$1
 
 ./build-target.sh ti-export-api mvn git_pull_no "$path_to_repo"
 
-# notification
-./build-target.sh ti-notification-api mvn git_pull_no "$path_to_repo"
+
+./build-target.sh ti-ai-orchestrator-api mvn git_pull_no "$path_to_repo"
 
 
 

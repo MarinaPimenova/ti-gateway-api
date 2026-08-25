@@ -1,0 +1,45 @@
+piVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      exemplarTraceIdDestinations:
+        - name: traceId
+          datasourceUid: zipkin
+
+  - name: Zipkin
+    type: zipkin
+    uid: zipkin
+    access: proxy
+    url: http://zipkin:9411
+    jsonData:
+      nodeGraph:
+        enabled: true
+      tracesToLogsV2:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        tags: ['service']
+        filterByTraceID: true
+        filterBySpanID: false
+        customQuery: true
+        query: '{compose_service=~".*"} |= "$${__trace.id}"'
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        - name: TraceID
+          label: traceId
+          #matcherRegex: '"traceId":"(\w+)"'
+          matcherRegex: '"trace\.?Id":"([a-f0-9]+)"'
+          url: '$${__value.raw}'
+          datasourceUid: zipkin

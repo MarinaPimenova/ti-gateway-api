@@ -284,15 +284,15 @@ docker compose up -d
 Default local ports:
 
 | Service             | Port  |
-| ------------------- | ----- |
+|---------------------| ----- |
 | React UI            | 3000  |
 | Gateway API         | 8080  |
 | Knowledge API       | 8081  |
 | Orchestrator API    | 8082  |
 | Import API          | 8083  |
 | Export API          | 8084  |
-| Audit API           | 8085  |
-| Notification API    | 8086  |
+| AI Orchestrator API | 8085  |
+| Document Worker     | 8086  |
 | RabbitMQ Management | 15672 |
 | PostgreSQL          | 5432  |
 

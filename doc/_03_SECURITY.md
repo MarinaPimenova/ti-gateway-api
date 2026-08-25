@@ -322,8 +322,6 @@ Each backend service:
 * ti-knowledge-api
 * ti-import-api
 * ti-export-api
-* ti-audit-api
-* ti-notification-api
 
 validates JWT tokens.
 

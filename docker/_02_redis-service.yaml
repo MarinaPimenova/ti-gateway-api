@@ -1,9 +1,12 @@
 services:
-  redis-session:
-    container_name: ti-redis-session
+  redis:
+    container_name: ti-redis
     image: redis:7-alpine
     command: redis-server
     volumes:
-      - ./redis:/data
+      - redis-data:/data
     ports:
       - "6379:6379"
+
+volumes:
+  redis-data:
