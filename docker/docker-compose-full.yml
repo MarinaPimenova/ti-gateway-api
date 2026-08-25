@@ -101,6 +101,7 @@ services:
     command: [ "-config.file=/etc/loki/loki-config.yaml" ]
     volumes:
       - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/tmp/loki
     ports:
       - "3100:3100"
     networks:
@@ -123,6 +124,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASS:-admin}
     volumes:
       - ./observability/grafana/provisioning-full:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
     networks:
       - knowledge-network
 
@@ -423,12 +425,14 @@ services:
 
 volumes:
   knowledge-db-data:
-  redis-data:
-  rabbitmq-data:
   document-db-data:
   assistant-db-data:
   import_storage:
   upload_storage:
+  redis-data:
+  rabbitmq-data:
+  loki-data:
+  grafana-data:
 
 networks:
   knowledge-network:
