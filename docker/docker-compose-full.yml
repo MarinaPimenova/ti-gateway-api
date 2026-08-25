@@ -37,9 +37,9 @@ services:
     networks:
       - knowledge-network
 
-  knowledge-postgres:
+  ti-knowledge-db:
     image: postgres:17
-    container_name: knowledge-postgres
+    container_name: ti-knowledge-db
     environment:
       POSTGRES_DB: ${KNOWLEDGE_DB_NAME:-knowledge_db}
       POSTGRES_USER: ${KNOWLEDGE_USER:-knowledge_user}
@@ -47,14 +47,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./kb-scripts:/docker-entrypoint-initdb.d
-      - postgres-data:/var/lib/postgresql/data
+      - ./knowledge-init-scripts:/docker-entrypoint-initdb.d
+      - knowledge-db-data:/var/lib/postgresql/data
     networks:
       - knowledge-network
 
-  pgvector-postgres:
+  ti-document-db:
     image: ankane/pgvector
-    container_name: pgvector-postgres
+    container_name: ti-document-db
     environment:
       POSTGRES_DB: ${DOCUMENT_DB_NAME:-document_db}
       POSTGRES_USER: ${DOCUMENT_USER:-postgres}
@@ -62,8 +62,25 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - pgvector-data:/var/lib/postgresql/data
-      - ./pgvector-scripts:/docker-entrypoint-initdb.d
+      - document-db-data:/var/lib/postgresql/data
+      - ./document-init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - knowledge-network
+
+  ti-assistant-db:
+    image: postgres:17
+    container_name: ti-assistant-db
+    environment:
+      POSTGRES_DB: ${KNOWLEDGE_DB_NAME:-assitant-db}
+      POSTGRES_USER: ${KNOWLEDGE_USER:-assistant_user}
+      POSTGRES_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
+    ports:
+      - "5434:5432"
+    volumes:
+      # initialization scripts
+      - ./assistant-init-scripts:/docker-entrypoint-initdb.d
+      # PostgreSQL data
+      - assistant-db-data:/var/lib/postgresql/data
     networks:
       - knowledge-network
 
@@ -132,7 +149,7 @@ services:
     environment:
       SERVER_PORT: 8081
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://knowledge-postgres:5432/knowledge_db}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
@@ -142,7 +159,7 @@ services:
       - loki
       - prometheus
       - zipkin
-      - knowledge-postgres
+      - ti-knowledge-db
     ports:
       - "8081:8081"
     networks:
@@ -180,7 +197,7 @@ services:
     environment:
       SERVER_PORT: 8083
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://knowledge-postgres:5432/knowledge_db}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
@@ -194,7 +211,7 @@ services:
       - loki
       - prometheus
       - zipkin
-      - knowledge-postgres
+      - ti-knowledge-db
       - rabbitmq
     ports:
       - "8083:8083"
@@ -207,7 +224,7 @@ services:
     environment:
       SERVER_PORT: 8084
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://knowledge-postgres:5432/knowledge_db}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
@@ -221,7 +238,7 @@ services:
       - loki
       - prometheus
       - zipkin
-      - knowledge-postgres
+      - ti-knowledge-db
       - rabbitmq
     ports:
       - "8084:8084"
@@ -267,7 +284,7 @@ services:
     environment:
       SERVER_PORT: 8086
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://pgvector-postgres:5433/document_db}
+      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
       DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
       DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
@@ -297,7 +314,7 @@ services:
       - loki
       - prometheus
       - zipkin
-      - pgvector-postgres
+      - ti-document-db
       - rabbitmq
     ports:
       - "8086:8086"
@@ -310,7 +327,7 @@ services:
     environment:
       SERVER_PORT: 8087
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://pgvector-postgres:5433/document_db}
+      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
       DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
       DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
       MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
@@ -326,7 +343,7 @@ services:
       - loki
       - prometheus
       - zipkin
-      - pgvector-postgres
+      - ti-document-db
     ports:
       - "8087:8087"
     networks:
@@ -338,7 +355,7 @@ services:
     environment:
       SERVER_PORT: 8088
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://knowledge-postgres:5432/knowledge_db}
+      KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
       MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
@@ -354,7 +371,7 @@ services:
       - loki
       - prometheus
       - zipkin
-      - knowledge-postgres
+      - ti-knowledge-db
     ports:
       - "8088:8088"
     networks:
@@ -398,10 +415,11 @@ services:
       - knowledge-network
 
 volumes:
-  postgres-data:
+  knowledge-db-data:
   redis-data:
   rabbitmq-data:
-  pgvector-data:
+  document-db-data:
+  assistant-db-data:
   import_storage:
   upload_storage:
 
