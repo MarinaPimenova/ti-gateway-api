@@ -99,7 +99,6 @@ flowchart LR
     Gateway --> AI_Orchestrator
 
     Orchestrator --> Rabbit
-    AI_Orchestrator --> Rabbit
 
     Rabbit --> Import
     Rabbit --> Document_Worker

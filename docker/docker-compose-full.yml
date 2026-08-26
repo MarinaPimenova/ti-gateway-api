@@ -19,6 +19,17 @@ services:
     networks:
       - knowledge-network
 
+  memory-prompt-redis:
+    container_name: memory-prompt-redis
+    image: redis:7-alpine
+    command: redis-server
+    volumes:
+      - memory-prompt-redis-data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - knowledge-network
+
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:4-management
@@ -171,7 +182,8 @@ services:
     container_name: ti-orchestrator-api
     image: orchestrator-local:latest
     volumes:
-      - import-storage:${IMPORT_STORAGE_PATH}
+      - import_storage:${IMPORT_STORAGE_PATH}
+      - upload_storage:${UPLOAD_STORAGE_PATH}
     environment:
       SERVER_PORT: 8082
       OKTA_DOMAIN: ${OKTA_DOMAIN}
@@ -179,6 +191,7 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
       IMPORT_STORAGE_PATH: ${IMPORT_STORAGE_PATH:-/data/import}
+      UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH:-/data/upload}
       ADMINS: ${ADMINS}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
@@ -250,15 +263,10 @@ services:
   ti-ai-orchestrator-api:
     container_name: ti-ai-orchestrator-api
     image: ai-orchestrator-local:latest
-    volumes:
-      - upload-storage:${UPLOAD_STORAGE_PATH}
     environment:
       SERVER_PORT: 8085
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
-      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
-      UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH}
+
       ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
       ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
       ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
@@ -266,6 +274,8 @@ services:
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
       OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
       CHAT_MODEL: ${CHAT_MODEL}
+      MEMORY_PROMPT_REDIS_CACHE_HOST: ${MEMORY_PROMPT_REDIS_CACHE_HOST:-memory-prompt-redis}
+      MEMORY_PROMPT_REDIS_CACHE_PORT: ${MEMORY_PROMPT_REDIS_CACHE_PORT:-6380}
 
       ADMINS: ${ADMINS}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
@@ -430,6 +440,7 @@ volumes:
   import_storage:
   upload_storage:
   redis-data:
+  memory-prompt-redis-data:
   rabbitmq-data:
   loki-data:
   grafana-data:
