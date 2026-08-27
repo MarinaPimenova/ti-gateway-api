@@ -32,12 +32,10 @@ services:
 
   rabbitmq:
     container_name: rabbitmq
-    image: rabbitmq:4-management
+    image: rabbitmq:4.1-management
     hostname: rabbitmq
     restart: always
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
@@ -82,7 +80,7 @@ services:
     image: postgres:17
     container_name: ti-assistant-db
     environment:
-      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assitant-db}
+      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assistant_db}
       POSTGRES_USER: ${ASSISTANT_USER:-assistant_user}
       POSTGRES_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
     ports:
@@ -274,6 +272,7 @@ services:
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
       OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
       CHAT_MODEL: ${CHAT_MODEL}
+      MEMORY_PROMPT_REDIS_SSQL_ENABLED: ${MEMORY_PROMPT_REDIS_SSQL_ENABLED:-false}
       MEMORY_PROMPT_REDIS_CACHE_HOST: ${MEMORY_PROMPT_REDIS_CACHE_HOST:-memory-prompt-redis}
       MEMORY_PROMPT_REDIS_CACHE_PORT: ${MEMORY_PROMPT_REDIS_CACHE_PORT:-6380}
 

@@ -4,9 +4,36 @@
       "name": "/"
     }
   ],
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "RNfa+6qI23x9E3XXb1dhmTOypgjtnraioi5bnT9hZnFH7Qj2",
+      "tags": [
+        "administrator"
+      ]
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
   "exchanges": [
     {
       "name": "ti.import",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ti.upload",
       "vhost": "/",
       "type": "topic",
       "durable": true,
@@ -36,6 +63,27 @@
       "durable": true,
       "auto_delete": false,
       "arguments": {}
+    },
+    {
+      "name": "upload-worker.import",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "upload-worker.completed",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "upload-worker.fail",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
     }
   ],
   "bindings": [
@@ -61,6 +109,30 @@
       "destination": "import-worker.fail",
       "destination_type": "queue",
       "routing_key": "import.failed",
+      "arguments": {}
+    },
+    {
+      "vhost": "/",
+      "source": "ti.upload",
+      "destination": "upload-worker.import",
+      "destination_type": "queue",
+      "routing_key": "upload.requested",
+      "arguments": {}
+    },
+    {
+      "vhost": "/",
+      "source": "ti.upload",
+      "destination": "upload-worker.completed",
+      "destination_type": "queue",
+      "routing_key": "upload.completed",
+      "arguments": {}
+    },
+    {
+      "vhost": "/",
+      "source": "ti.upload",
+      "destination": "upload-worker.fail",
+      "destination_type": "queue",
+      "routing_key": "upload.failed",
       "arguments": {}
     }
   ]
