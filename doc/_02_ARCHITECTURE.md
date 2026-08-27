@@ -85,7 +85,7 @@ Each microservice owns a single business capability.
 | ti-import-worker       | Import processing                        |
 | ti-export-api          | Export processing                        |
 | ti-ai-orchestrator-api | Manage AI Chatbot                        |
-| ti-document-worker     | Process (ETL pipeline) uploaded document |
+| ti-document-upload-worker     | Process (ETL pipeline) uploaded document |
 | ti-document-agent      | Document AI Agent                        |
 | ti-sql-agent           | Question AI Agent                        |
 
@@ -103,7 +103,7 @@ Knowledge Service
     └── Knowledge Database
 
 
-ti-document-worker
+ti-document-upload-worker
         |
         └── Embeddings Database
 ```

@@ -291,8 +291,8 @@ services:
     networks:
       - knowledge-network
 
-  ti-document-worker:
-    container_name: ti-document-worker
+  ti-document-upload-worker:
+    container_name: ti-document-upload-worker
     image: document-local:latest
     environment:
       SERVER_PORT: 8086
@@ -418,7 +418,7 @@ services:
       IMPORT_SERVICE: ${IMPORT_SERVICE:-ti-import-worker}
       EXPORT_SERVICE: ${EXPORT_SERVICE:-ti-export-api}
       AI_ORCHESTRATOR_SERVICE: ${AI_ORCHESTRATOR_SERVICE:-ti-ai-orchestrator-api}
-      DOCUMENT_SERVICE: ${DOCUMENT_SERVICE:-ti-document-worker}
+      DOCUMENT_SERVICE: ${DOCUMENT_SERVICE:-ti-document-upload-worker}
       DOCUMENT_AGENT: ${DOCUMENT_AGENT:-ti-document-agent}
       SQL_AGENT: ${SQL_AGENT:-ti-sql-agent}
 

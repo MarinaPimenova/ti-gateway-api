@@ -80,7 +80,7 @@ flowchart LR
     subgraph Workers["Workers"]
         direction TB
         Import["ti-import-worker"]
-        Document_Worker["ti-document-worker"]
+        Document_Worker["ti-document-upload-worker"]
     end
 
     subgraph Databases["Databases"]
@@ -133,7 +133,7 @@ flowchart LR
 | ti-import-worker       | Process Excel/CSV imports                                  |
 | ti-export-api          | Generate export files                                      |
 | ti-ai-orchestrator-api | Manage AI Chatbot                                          |
-| ti-document-worker     | Process (ETL pipeline) uploaded document                   |
+| ti-document-upload-worker     | Process (ETL pipeline) uploaded document                   |
 | ti-document-agent      | Document AI Agent                                          |
 | ti-sql-question-agent  | Question AI Agent                                          |
 
@@ -196,7 +196,7 @@ ti-knowledge-api
         └── Knowledge Database
 
 
-ti-document-worker
+ti-document-upload-worker
         |
         └── Embeddings Database
 
