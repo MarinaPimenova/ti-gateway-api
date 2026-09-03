@@ -47,95 +47,196 @@ The platform follows:
 - Asynchronous Processing
 - Stateless Services
 
+
 ```mermaid
-flowchart LR
+flowchart TB
 
-    subgraph Frontends["Frontend Applications"]
-        direction TB
-        UI["TI Knowledge Dashboard<br/>React SPA<br/>Vite + Nginx"]
-        AI_Chatbot_UI["AI Chatbot<br/>React SPA<br/>Vite + Nginx"]
+    %% =========================================================
+    %% Frontend Applications
+    %% =========================================================
+
+    subgraph UI["Frontend Applications"]
+        direction LR
+
+        KUI["ti-knowledge-ui<br/><br/>TI Platform Entry Point<br/>Dashboard / Base Information / Login"]
+
+        CUI["ti-ai-chatbot-ui<br/><br/>AI Chatbot<br/>Chat / RAG"]
+
+        QUI["ti-ai-question-ui<br/><br/>AI Resources Uploader<br/>Question Generation"]
     end
 
-    Gateway["ti-gateway-api<br/>API Gateway + BFF"]
 
-    subgraph APIs["Backend APIs"]
-        direction TB
-        Knowledge["ti-knowledge-api"]
-        Export["ti-export-api"]
-        Orchestrator["ti-orchestrator-api"]
-        AI_Orchestrator["ti-ai-orchestrator-api"]
+    %% =========================================================
+    %% API Gateway
+    %% =========================================================
+
+    GW["ti-gateway-api<br/><br/>API Gateway / BFF<br/>OAuth2 Client / Security / Routing"]
+
+
+    %% =========================================================
+    %% Backend APIs
+    %% =========================================================
+
+    subgraph API["Backend APIs"]
+        direction LR
+
+        KA["ti-knowledge-api<br/><br/>Questions / Answers<br/>Resources / Code Examples"]
+
+        ORCH["ti-orchestrator-api<br/><br/>Long-running<br/>Import / Export Workflows"]
+
+        AIO["ti-ai-orchestrator-api<br/><br/>AI Chatbot Orchestration"]
     end
 
-    subgraph Messaging["Messaging"]
-        direction TB
-        Rabbit["RabbitMQ"]
+
+    %% =========================================================
+    %% Workers / Processing
+    %% =========================================================
+
+    subgraph WORKERS["Workers / Processing"]
+        direction LR
+
+        IW["ti-import-worker<br/><br/>Excel / CSV Import"]
+
+        DW["ti-document-worker<br/><br/>Document ETL / Processing<br/>Embeddings + Text Sections"]
+
+        EA["ti-export-api<br/><br/>Export File Generation"]
     end
 
-    subgraph Agents["AI Agents"]
-        direction TB
-        Document_Agent["ti-document-agent"]
-        SQL_Agent["ti-sql-agent"]
+
+    %% =========================================================
+    %% AI Agents
+    %% =========================================================
+
+    subgraph AGENTS["AI Agents"]
+        direction LR
+
+        DA["ti-document-agent<br/><br/>Document AI Agent<br/>RAG / Vector Search"]
+
+        SA["ti-sql-question-agent<br/><br/>Question AI Agent<br/>SQL Generation / Knowledge DB"]
     end
 
-    subgraph Workers["Workers"]
-        direction TB
-        Import["ti-import-worker"]
-        Document_Worker["ti-document-upload-worker"]
+
+    %% =========================================================
+    %% Messaging
+    %% =========================================================
+
+    MQ[("RabbitMQ<br/><br/>Async Messaging")]
+
+
+    %% =========================================================
+    %% Databases
+    %% =========================================================
+
+    subgraph DB["Databases"]
+        direction LR
+
+        KDB[("ti-knowledge-db<br/><br/>Questions<br/>Answers<br/>Tags<br/>Question Levels<br/>Resources<br/>Code Examples")]
+
+        DDB[("ti-document-db<br/><br/>Document Embeddings<br/>PGVector<br/>Document Text Sections")]
+
+        ADB[("ti-assistant-db<br/><br/>User Messages<br/>Conversations<br/>AI Processing Results")]
     end
 
-    subgraph Databases["Databases"]
-        direction TB
-        Knowledge_DB["Knowledge DB<br/>PostgreSQL"]
-        Document_DB["Document DB<br/>PostgreSQL + PGVector"]
-        Assistant_DB["Assistant DB<br/>PostgreSQL"]
-    end
 
-    UI --> Gateway
-    AI_Chatbot_UI --> Gateway
+    %% =========================================================
+    %% Frontend -> Gateway
+    %% =========================================================
 
-    Gateway --> Knowledge
-    Gateway --> Export
-    Gateway --> Orchestrator
-    Gateway --> AI_Orchestrator
+    KUI --> GW
+    CUI --> GW
+    QUI --> GW
 
-    Orchestrator --> Rabbit
 
-    Rabbit --> Import
-    Rabbit --> Document_Worker
+    %% =========================================================
+    %% Gateway -> Backend APIs
+    %% =========================================================
 
-    AI_Orchestrator --> Document_Agent
-    AI_Orchestrator --> SQL_Agent
+    GW --> KA
+    GW --> ORCH
+    GW --> AIO
 
-    Knowledge --> Knowledge_DB
-    Export --> Knowledge_DB
-    Import --> Knowledge_DB
-    SQL_Agent --> Knowledge_DB
 
-    Document_Worker --> Document_DB
-    Document_Agent --> Document_DB
+    %% =========================================================
+    %% Knowledge API
+    %% =========================================================
 
-    AI_Orchestrator --> Assistant_DB
-    Document_Agent --> Assistant_DB
-    SQL_Agent --> Assistant_DB
+    KA --> KDB
+
+
+    %% =========================================================
+    %% Import / Export Workflows
+    %% =========================================================
+
+    ORCH -->|"Import / Export commands"| MQ
+
+    MQ -->|"Import messages"| IW
+    MQ -->|"Document processing messages"| DW
+
+    IW -->|"Imported questions / data"| KDB
+
+    ORCH --> EA
+
+
+    %% =========================================================
+    %% Document Upload / Processing
+    %% =========================================================
+
+    QUI -->|"Upload document"| GW
+    GW -->|"Start document processing"| ORCH
+
+    DW -->|"Document embeddings / vectors"| DDB
+    DW -->|"Document text sections"| DDB
+
+
+    %% =========================================================
+    %% AI Chatbot Orchestration
+    %% =========================================================
+
+    AIO -->|"Document query"| DA
+    AIO -->|"Question / SQL query"| SA
+
+    AIO -->|"Conversations / messages / AI results"| ADB
+
+
+    %% =========================================================
+    %% Document AI Agent
+    %% =========================================================
+
+    DA -->|"Vector search / document retrieval"| DDB
+    DA -->|"Conversation / processing context"| ADB
+
+
+    %% =========================================================
+    %% SQL Question AI Agent
+    %% =========================================================
+
+    SA -->|"SQL / question data"| KDB
+    SA -->|"Conversation / processing context"| ADB
 ```
 
 ---
 
 # Microservices
 
-| Service                | Responsibility                                             |
-|------------------------|------------------------------------------------------------|
-| ti-knowledge-ui        | TI Dashboard: React frontend, dashboard, user interactions |
-| ti-ai-chatbot-ui       | AI Chatbot: React frontend, dashboard, user interactions   |
-| ti-gateway-api         | API Gateway, BFF, OAuth2 Client, routing, security         |
-| ti-knowledge-api       | Manage questions, answers, resources, code examples        |
-| ti-orchestrator-api    | Manage long-running import/export workflows                |
-| ti-import-worker       | Process Excel/CSV imports                                  |
-| ti-export-api          | Generate export files                                      |
-| ti-ai-orchestrator-api | Manage AI Chatbot                                          |
-| ti-document-upload-worker     | Process (ETL pipeline) uploaded document                   |
-| ti-document-agent      | Document AI Agent                                          |
-| ti-sql-question-agent  | Question AI Agent                                          |
+| Service                    | Responsibility                                                                            |
+|----------------------------|-------------------------------------------------------------------------------------------|
+| ti-knowledge-ui            | TI Dashboard: React frontend, dashboard, user interactions                                
+|                            | **Entry point for TI Platform** - once user opens it then -                               
+|                            | some base information is available for unauthenticated users + Login button is shown.     
+| ti-**ai**-chatbot-ui       | AI Chatbot: React frontend, dashboard, user interactions                                  |
+| ti-**ai**-question-ui      | AI Resources Uploader & Question Generation: React frontend, dashboard, user interactions |
+| **ti-gateway-api**         | API Gateway, BFF, OAuth2 Client, routing, security                                        
+|                            | **Entry point for TI Platform**                                                           
+| ti-knowledge-api           | Manage questions, answers, resources, code examples                                       |
+| ti-orchestrator-api        | Manage long-running import/export workflows                                               |
+| ti-import-**worker**       | Process Excel/CSV imports                                                                 |
+| ti-export-api              | Generate export files                                                                     |
+| ti-**ai**-orchestrator-api | Manage AI Chatbot                                                                         |
+| ti-document-**worker**     | Process (ETL pipeline) to upload documents and there are 2 ways to store them:
+|                            | - embeddings (vectors)
+|                            | - document text sections for questions generation
+| ti-document-agent          | Document AI Agent                                                                         |
+| ti-sql-question-agent      | Question AI Agent                                                                         |
 
 # Databases
 
@@ -144,6 +245,7 @@ flowchart LR
 | ti-knowledge-db | Store questions, their answers and their metadata such as:Tags,question level, etc. |
 | ti-document-db  | AI Chatbot: Store embeddings of the uploaded documents                              |
 | ti-assistant-db | AI Chatbot: Store users messages and the results of their processing                |
+
 
 ---
 
@@ -191,15 +293,18 @@ UI is notified (SSE mechanism)
 The platform follows the **Database per Service** pattern.
 
 ```
-ti-knowledge-api
+ti-knowledge-api uses for writing / ti-export-api, ti-sql-question-agent uses for reading
         |
         └── Knowledge Database
 
 
-ti-document-upload-worker
+ti-document-upload-worker uses for writing / ti-document-agent uses for reading
         |
         └── Embeddings Database
 
+ti-ai-orchestrator-api & AI Agents: each service writes to dedicated table
+        |
+        └── Assistant Database
 
 ```
 
@@ -429,10 +534,14 @@ The application can be started locally using Docker Compose.
 
 Infrastructure:
 
+* Redis - to support distributed session
+* Redis - to support AI Chat memory for conversation
 * PostgreSQL
 * RabbitMQ
-* Prometheus
-* Grafana
+* Prometheus - to collect metrics
+* Loki - to store logs
+* Zipkin - to trace requests
+* Grafana - dashboards
 
 See:
 
@@ -644,3 +753,10 @@ erDiagram
     PROJECT ||--o{ PROJECT_QUESTION : contains
     QUESTION ||--o{ PROJECT_QUESTION : belongs_to
 ```
+
+# Document DB schema
+
+
+
+# Assistant DB schema
+
