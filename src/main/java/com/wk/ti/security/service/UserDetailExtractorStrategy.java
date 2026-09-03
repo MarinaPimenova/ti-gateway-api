@@ -1,11 +1,13 @@
 package com.wk.ti.security.service;
 
+import com.drew.lang.annotations.SuppressWarnings;
 import com.wk.ti.security.model.UserDetail;
 
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
+@java.lang.SuppressWarnings({"unchecked", "unused"})
+@SuppressWarnings(value = "unchecked", justification = "")
 public interface UserDetailExtractorStrategy {
     String USER_ROLE = "user";
     String MODERATOR_ROLE = "moderator";

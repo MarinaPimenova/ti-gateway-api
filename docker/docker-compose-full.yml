@@ -209,6 +209,9 @@ services:
     image: import-local:latest
     environment:
       SERVER_PORT: 8083
+
+      IMPORT_STORAGE_PATH: ${IMPORT_STORAGE_PATH:import_storage}
+
       OKTA_DOMAIN: ${OKTA_DOMAIN}
       KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
@@ -295,10 +298,13 @@ services:
     image: document-local:latest
     environment:
       SERVER_PORT: 8086
+
+      UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH:-upload_storage}
+
       OKTA_DOMAIN: ${OKTA_DOMAIN}
       DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
-      DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
-      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
+      DOCUMENT_USER: ${DOCUMENT_USER:-postgres}
+      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-postgres}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
       RABBITMQ_USER: ${RABBITMQ_USER:-admin}
       RABBITMQ_PASS: ${RABBITMQ_PASS:-admin}
@@ -307,8 +313,8 @@ services:
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
       OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
       CHAT_MODEL: ${CHAT_MODEL:-gpt-4.1-mini-2025-04-14}
-      IMAGE_MODEL: ${IMAGE_MODEL}
-      IMAGE_AI_COMPLETIONS_PATH: ${IMAGE_AI_COMPLETIONS_PATH}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-ada-002}
+      OPEN_AI_EMBEDDINGS_PATH: ${OPEN_AI_EMBEDDINGS_PATH:-/openai/deployments/text-embedding-ada-002/embeddings}
 
       PGVECTOR_INDEX_TYPE: ${PGVECTOR_INDEX_TYPE:-HNSW}
       PGVECTOR_DISTANCE_TYPE: ${PGVECTOR_DISTANCE_TYPE:-COSINE_DISTANCE}
@@ -340,8 +346,8 @@ services:
       SERVER_PORT: 8087
       OKTA_DOMAIN: ${OKTA_DOMAIN}
       DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
-      DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
-      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
+      DOCUMENT_USER: ${DOCUMENT_USER:-postgres}
+      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-postgres}
       ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
       ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
       ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
