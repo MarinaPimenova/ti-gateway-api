@@ -17,8 +17,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/rest/v1/**")
+//@RestController
+//@RequestMapping("/rest/v1/**")
 @Slf4j
 public class GatewayExtController {
     private final DownstreamService downstreamService;

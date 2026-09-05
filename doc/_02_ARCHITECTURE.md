@@ -23,49 +23,169 @@ and RabbitMQ events.
 # High-Level Architecture
 
 ```mermaid
-flowchart TD
+flowchart TB
 
-    Browser["React SPA<br/>Vite + Nginx"]
+    %% =========================================================
+    %% Frontend Applications
+    %% =========================================================
 
-    Gateway["ti-gateway-api<br/>API Gateway + BFF"]
+    subgraph UI["Frontend Applications"]
+        direction LR
 
-    Knowledge["ti-knowledge-api"]
+        KUI["ti-knowledge-ui<br/><br/>TI Platform Entry Point<br/>Dashboard / Base Information / Login"]
 
-    orchestrator["ti-orchestrator-api"]
+        CUI["ti-ai-chatbot-ui<br/><br/>AI Chatbot<br/>Chat / RAG"]
 
-    Import["ti-import-api"]
+        QUI["ti-ai-question-ui<br/><br/>AI Resources Uploader<br/>Question Generation"]
+    end
 
-    Export["ti-export-api"]
 
-    Audit["ti-audit-api"]
+    %% =========================================================
+    %% API Gateway
+    %% =========================================================
 
-    Notification["ti-notification-api"]
+    GW["ti-gateway-api<br/><br/>API Gateway / BFF<br/>OAuth2 Client / Security / Routing"]
 
-    Rabbit["RabbitMQ"]
 
-    Postgres1["Knowledge DB"]
+    %% =========================================================
+    %% Backend APIs
+    %% =========================================================
 
-    Postgres2["Job DB"]
+    subgraph API["Backend APIs"]
+        direction LR
 
-    Postgres3["Audit DB"]
+        KA["ti-knowledge-api<br/><br/>Questions / Answers<br/>Resources / Code Examples"]
 
-    Browser --> Gateway
+        ORCH["ti-orchestrator-api<br/><br/>Long-running<br/>Import / Export Workflows"]
 
-    Gateway --> Knowledge
-    Gateway --> orchestrator
+        AIO["ti-ai-orchestrator-api<br/><br/>AI Chatbot Orchestration"]
+    end
 
-    orchestrator --> Rabbit
 
-    Rabbit --> Import
-    Rabbit --> Export
-    Rabbit --> Audit
-    Rabbit --> Notification
+    %% =========================================================
+    %% Workers / Processing
+    %% =========================================================
 
-    Import --> Postgres1
-    Export --> Postgres1
-    Knowledge --> Postgres1
-    orchestrator --> Postgres2
-    Audit --> Postgres3
+    subgraph WORKERS["Workers / Processing"]
+        direction LR
+
+        IW["ti-import-worker<br/><br/>Excel / CSV Import"]
+
+        DW["ti-document-worker<br/><br/>Document ETL / Processing<br/>Embeddings + Text Sections"]
+
+        EA["ti-export-api<br/><br/>Export File Generation"]
+    end
+
+
+    %% =========================================================
+    %% AI Agents
+    %% =========================================================
+
+    subgraph AGENTS["AI Agents"]
+        direction LR
+
+        DA["ti-document-agent<br/><br/>Document AI Agent<br/>RAG / Vector Search"]
+
+        SA["ti-sql-question-agent<br/><br/>Question AI Agent<br/>SQL Generation / Knowledge DB"]
+    end
+
+
+    %% =========================================================
+    %% Messaging
+    %% =========================================================
+
+    MQ[("RabbitMQ<br/><br/>Async Messaging")]
+
+
+    %% =========================================================
+    %% Databases
+    %% =========================================================
+
+    subgraph DB["Databases"]
+        direction LR
+
+        KDB[("ti-knowledge-db<br/><br/>Questions<br/>Answers<br/>Tags<br/>Question Levels<br/>Resources<br/>Code Examples")]
+
+        DDB[("ti-document-db<br/><br/>Document Embeddings<br/>PGVector<br/>Document Text Sections")]
+
+        ADB[("ti-assistant-db<br/><br/>User Messages<br/>Conversations<br/>AI Processing Results")]
+    end
+
+
+    %% =========================================================
+    %% Frontend -> Gateway
+    %% =========================================================
+
+    KUI --> GW
+    CUI --> GW
+    QUI --> GW
+
+
+    %% =========================================================
+    %% Gateway -> Backend APIs
+    %% =========================================================
+
+    GW --> KA
+    GW --> ORCH
+    GW --> AIO
+
+
+    %% =========================================================
+    %% Knowledge API
+    %% =========================================================
+
+    KA --> KDB
+
+
+    %% =========================================================
+    %% Import / Export Workflows
+    %% =========================================================
+
+    ORCH -->|"Import / Export commands"| MQ
+
+    MQ -->|"Import messages"| IW
+    MQ -->|"Document processing messages"| DW
+
+    IW -->|"Imported questions / data"| KDB
+
+    ORCH --> EA
+
+
+    %% =========================================================
+    %% Document Upload / Processing
+    %% =========================================================
+
+    QUI -->|"Upload document"| GW
+    GW -->|"Start document processing"| ORCH
+
+    DW -->|"Document embeddings / vectors"| DDB
+    DW -->|"Document text sections"| DDB
+
+
+    %% =========================================================
+    %% AI Chatbot Orchestration
+    %% =========================================================
+
+    AIO -->|"Document query"| DA
+    AIO -->|"Question / SQL query"| SA
+
+    AIO -->|"Conversations / messages / AI results"| ADB
+
+
+    %% =========================================================
+    %% Document AI Agent
+    %% =========================================================
+
+    DA -->|"Vector search / document retrieval"| DDB
+    DA -->|"Conversation / processing context"| ADB
+
+
+    %% =========================================================
+    %% SQL Question AI Agent
+    %% =========================================================
+
+    SA -->|"SQL / question data"| KDB
+    SA -->|"Conversation / processing context"| ADB
 ```
 
 ---
@@ -85,7 +205,7 @@ Each microservice owns a single business capability.
 | ti-import-worker       | Import processing                        |
 | ti-export-api          | Export processing                        |
 | ti-ai-orchestrator-api | Manage AI Chatbot                        |
-| ti-document-upload-worker     | Process (ETL pipeline) uploaded document |
+| ti-document-worker     | Process (ETL pipeline) uploaded document |
 | ti-document-agent      | Document AI Agent                        |
 | ti-sql-agent           | Question AI Agent                        |
 
@@ -103,7 +223,7 @@ Knowledge Service
     └── Knowledge Database
 
 
-ti-document-upload-worker
+ti-document-worker
         |
         └── Embeddings Database
 ```

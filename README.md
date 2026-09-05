@@ -29,7 +29,6 @@ After completing this project you will have practical experience with:
 - Docker, Docker Compose
 - CI/CD, GitHub Actions
 - AWS Deployment
-
 - Microservices, Backend For Frontend (BFF) Pattern, API Gateway Pattern, Dependency Injection
 - Observability
 - Audit Logging
@@ -41,12 +40,11 @@ After completing this project you will have practical experience with:
 The platform follows:
 
 - Microservices Architecture
-- API Gateway + BFF Pattern
+- API Gateway + BFF Patterns
 - Database per Service
 - Event-Driven Architecture
 - Asynchronous Processing
 - Stateless Services
-
 
 ```mermaid
 flowchart TB
@@ -218,33 +216,33 @@ flowchart TB
 
 # Microservices
 
-| Service                    | Responsibility                                                                            |
-|----------------------------|-------------------------------------------------------------------------------------------|
-| ti-knowledge-ui            | TI Dashboard: React frontend, dashboard, user interactions                                
-|                            | **Entry point for TI Platform** - once user opens it then -                               
-|                            | some base information is available for unauthenticated users + Login button is shown.     
-| ti-**ai**-chatbot-ui       | AI Chatbot: React frontend, dashboard, user interactions                                  |
-| ti-**ai**-question-ui      | AI Resources Uploader & Question Generation: React frontend, dashboard, user interactions |
-| **ti-gateway-api**         | API Gateway, BFF, OAuth2 Client, routing, security                                        
-|                            | **Entry point for TI Platform**                                                           
-| ti-knowledge-api           | Manage questions, answers, resources, code examples                                       |
-| ti-orchestrator-api        | Manage long-running import/export workflows                                               |
-| ti-import-**worker**       | Process Excel/CSV imports                                                                 |
-| ti-export-api              | Generate export files                                                                     |
-| ti-**ai**-orchestrator-api | Manage AI Chatbot                                                                         |
-| ti-document-**worker**     | Process (ETL pipeline) to upload documents and there are 2 ways to store them:
-|                            | - embeddings (vectors)
-|                            | - document text sections for questions generation
-| ti-document-agent          | Document AI Agent                                                                         |
-| ti-sql-question-agent      | Question AI Agent                                                                         |
+| Service                                                     | Responsibility                                                                                                    |
+|-------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| [ ti-knowledge-ui](https://github.com/MarinaPimenova/ti-knowledge-ui) | TI Dashboard: React frontend, dashboard, user interactions                                                        
+|                                                             | **Entry point for TI Platform** - once user opens it then -                                                       
+|                                                             | some base information is available for unauthenticated users + Login button is shown.                             
+| [ti-**ai**-chatbot-ui](https://github.com/MarinaPimenova/ti-ai-chatbot-ui)                                | AI Chatbot: React frontend, dashboard, user interactions                                                          |
+| [ti-**ai**-question-ui](https://github.com/MarinaPimenova/ti-ai-question-ui)                                   | AI Resources Uploader & Question Generation: React frontend, dashboard, user interactions                         |
+| [ti-gateway-api](https://github.com/MarinaPimenova/ti-gateway-api)                                          | API Gateway, BFF, OAuth2 Client, routing, security                                                                
+|                                                             | **Entry point for TI Platform**                                                                                   
+| [ti-knowledge-api](https://github.com/MarinaPimenova/ti-knowledge-api)                                        | Manage questions, answers, resources, code examples                                                               |
+| [ti-orchestrator-api](https://github.com/MarinaPimenova/ti-orchestrator-api)                                     | Manage long-running import/export workflows                                                                       |
+| [ti-import-**worker**](https://github.com/MarinaPimenova/ti-import-worker)                                    | Process Excel/CSV imports                                                                                         |
+| [ti-export-api](https://github.com/MarinaPimenova/ti-export-api)                                           | Generate export files                                                                                             |
+| [ti-**ai**-orchestrator-api](https://github.com/MarinaPimenova/ti-ai-orchestrator-api)                              | Manage AI Chatbot                                                                                                 |
+| [ti-document-**worker**](https://github.com/MarinaPimenova/ti-document-worker)                                  | Process (ETL pipeline) to upload documents and there are 2 ways to store them:                                    
+|                                                             | - embeddings (vectors)                                                                                            
+|                                                             | - document text sections for questions generation                                                                 
+| [ti-document-agent](https://github.com/MarinaPimenova/ti-document-agent)                                       | Document AI Agent                                                                                                 |
+| [ti-sql-agent](https://github.com/MarinaPimenova/ti-sql-agent)                                            | Question AI Agent: dinamically generate SQL queries based on users questions and the provided DB Knowledge schema |
 
 # Databases
 
-| Database        | Responsibility                                                                      |
-|-----------------|-------------------------------------------------------------------------------------|
-| ti-knowledge-db | Store questions, their answers and their metadata such as:Tags,question level, etc. |
-| ti-document-db  | AI Chatbot: Store embeddings of the uploaded documents                              |
-| ti-assistant-db | AI Chatbot: Store users messages and the results of their processing                |
+| Database            | Responsibility                                                                      |
+|---------------------|-------------------------------------------------------------------------------------|
+| [ti-knowledge-db](https://github.com/MarinaPimenova/ti-knowledge-db) | Store questions, their answers and their metadata such as:Tags,question level, etc. |
+| [ti-document-db](https://github.com/MarinaPimenova/ti-document-db)  | AI Chatbot: Store embeddings of the uploaded documents                              |
+| [ti-assistant-db](https://github.com/MarinaPimenova/ti-assistant-db) | AI Chatbot: Store users messages and the results of their processing                |
 
 
 ---
@@ -353,7 +351,7 @@ Details:
 
 See:
 
-* `docs/SECURITY.md`
+* `docs/_03_SECURITY.md`
 
 ---
 
@@ -462,13 +460,13 @@ spanId
 
 See:
 
-* `docs/OBSERVABILITY.md`
+* `docs/_04_1_OBSERVABILITY.md`
+* `docs/_04_2_monitoring tools_OTLP (Pushing data) and Prometheus (Pulling data).md`
+* `docs/_04_3_Metrics_Tracing_StructuredJSON_Logging_SBoot_4.md`
+* `docs/_04_4_Verify_ObservabilityPipeline.md`
+* `docs/_04_5_Local_Observability_Troubleshooting.md`
 
 ---
-
-# Auditability
-
-Business actions are recorded through `ti-audit-api`.
 
 Examples:
 
@@ -521,10 +519,7 @@ Publish Image
 
 Deploy
 ```
-
-See:
-
-* `docs/CI_CD.md`
+See `docs/_05_CI_CD.md`
 
 ---
 
@@ -545,7 +540,7 @@ Infrastructure:
 
 See:
 
-* `docs/LOCAL_SETUP.md`
+* `docs/_06_LOCAL_SETUP.md`
 
 ---
 
@@ -583,7 +578,7 @@ CloudWatch / Grafana
 
 See:
 
-* `docs/AWS_DEPLOYMENT.md`
+* `docs/_07_AWS_DEPLOYMENT.md`
 
 ---
 

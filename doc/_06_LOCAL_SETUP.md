@@ -12,6 +12,7 @@ The local setup includes:
 - React + Vite frontend
 - Spring Boot 4 microservices
 - PostgreSQL databases
+- Redis caches
 - RabbitMQ message broker
 - Okta development integration
 - Observability components (optional)
@@ -19,61 +20,6 @@ The local setup includes:
 ---
 
 # Local Architecture
-
-```mermaid
-flowchart LR
-
-    Browser["Browser"]
-
-    UI["ti-ui<br/>React + Vite"]
-
-    Gateway["ti-gateway-api"]
-
-    Knowledge["ti-knowledge-api"]
-
-    Orchestrator["ti-orchestrator-api"]
-
-    Import["ti-import-api"]
-
-    Export["ti-export-api"]
-
-    Audit["ti-audit-api"]
-
-    Notification["ti-notification-api"]
-
-    Rabbit["RabbitMQ"]
-
-    PG1["Knowledge DB"]
-
-    PG2["Job DB"]
-
-    PG3["Audit DB"]
-
-
-    Browser --> UI
-
-    UI --> Gateway
-
-    Gateway --> Knowledge
-    Gateway --> Orchestrator
-
-    Orchestrator --> Rabbit
-
-    Rabbit --> Import
-    Rabbit --> Export
-    Rabbit --> Audit
-    Rabbit --> Notification
-
-    Knowledge --> PG1
-    Import --> PG1
-    Export --> PG1
-
-    Orchestrator --> PG2
-
-    Audit --> PG3
-````
-
----
 
 # Prerequisites
 
@@ -107,79 +53,39 @@ npm --version
 
 ---
 
-# Project Structure
-
-Example repository structure:
-
-```text
-ti-knowledge-platform
-
-│
-├── docker-compose.yml
-│
-├── ti-ui
-│   ├── package.json
-│   └── Dockerfile
-│
-├── ti-gateway-api
-│   ├── pom.xml
-│   └── Dockerfile
-│
-├── ti-knowledge-api
-│
-├── ti-orchestrator-api
-│
-├── ti-import-api
-│
-├── ti-export-api
-│
-├── ti-audit-api
-│
-├── ti-notification-api
-│
-├── postgres
-│
-└── rabbitmq
-```
-
----
-
 # Docker Compose Overview
 
-The local environment is started using:
+## The local environment is started using:
 
 ```bash
-docker compose up
+cd docker
+docker compose -f docker-compose-full.yml up -d
 ```
 
 Docker Compose starts:
 
 * Backend microservices
 * Databases
+* Redis caches
 * RabbitMQ
 * Supporting infrastructure
 
-Example:
+## Prerequisites
 
-```yaml
-services:
+Before running this app, you will need the following:
 
-  postgres:
-    image: postgres:17
+### Init Okta Developer Account
 
-  rabbitmq:
-    image: rabbitmq:4-management
+* An Okta Developer Account, you can sign up for one at https://developer.okta.com/signup/.
+  <img alt="auth0-okta.png" height="150" src="auth0-okta.png" width="80"/>
+* An Okta Application, configured for Web mode. This is done from the Okta Developer Console and you can find instructions [here][https://developer.okta.com/docs/guides/implement-grant-type/authcode/main/#1-setting-up-your-application].  When following the wizard, use the default properties.
+* This Okta Application entry needs a login redirect URI. Go to "Login redirect URIs" under "General Settings" for the application, click "Edit" and add http://localhost:8080/authorization-code/callback.
+* This Okta Application entry needs the logout callback. "Logout redirect URIs" under "General" for the application should list http://localhost:8080. If it is not present, click "Edit" and add it.
+* Ensure that this Okta Application is assigned to "Everyone" group or a custom group or a set of users that need to access the application. Navigate to "Assignments" tab for the application, and click "Assign -> Assign to People" or "Assign -> Assign to Groups" to do this.
 
-  ti-gateway-api:
-    build:
-      context: ./ti-gateway-api
+### Provide ENVIRONMENT VARIABLES Values
 
-  ti-knowledge-api:
-    build:
-      context: ./ti-knowledge-api
-```
 
----
 
 # Starting the Environment
 
@@ -188,7 +94,7 @@ services:
 ```bash
 git clone <repository-url>
 
-cd ti-knowledge-platform
+cd <repository>
 ```
 
 ---
@@ -199,12 +105,16 @@ Build all Spring Boot applications:
 
 ```bash
 mvn clean package
+or
+./gradlew clean build
 ```
 
 The build creates:
 
 ```text
 target/*.jar
+or
+build/libs/*.jar
 ```
 
 ---
@@ -220,26 +130,39 @@ docker compose build
 Example images:
 
 ```text
-ti-ui
+ti-knowledge-ui-local:latest
 
-ti-gateway-api
+ti-ai-chatbot-local:latest
 
-ti-knowledge-api
+ti-ai-question-local:latest
 
-ti-orchestrator-api
+ti-gateway-local:latest
 
-ti-import-api
+ti-knowledge-local:latest
 
-ti-export-api
+ti-orchestrator-local:latest
 
-ti-audit-api
+ti-import-worker-local
 
-ti-notification-api
+ti-export-local:latest
+
+ti-ai-orchestrator-local:latest
+
+ti-document-worker-local:latest
+
+ti-document-agent-local:latest
+
+ti-sql-agent-local:latest
+
 ```
 
 ---
 
 ## Start Infrastructure
+
+Start Redis:
+```bash
+```
 
 Start databases and messaging:
 
