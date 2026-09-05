@@ -139,6 +139,10 @@ Stop and wipe all data (databases, RabbitMQ, storage volumes):
 docker compose -f docker-compose-full.yml down -v
 ```
 
+Once every container is up and healthy, open **http://localhost:8080** in your
+browser — the gateway handles the Okta login and redirects you into the
+Knowledge UI dashboard.
+
 ---
 
 ## Access URLs
