@@ -752,6 +752,108 @@ erDiagram
 # Document DB schema
 
 
+```mermaid
+
+erDiagram
+    question_generation_document ||--o{ question_generation_section : "has"
+    question_generation_document ||--o{ vector_store : "referenced by (document_id, logical)"
+    question_generation_section ||--o{ vector_store : "referenced by (section_id, logical)"
+
+    question_generation_document {
+        bigint id PK
+        varchar_500 filename
+        varchar_10 file_extension
+        bigint file_size
+        varchar_30 status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    question_generation_section {
+        bigint id PK
+        bigint document_id FK
+        integer section_number
+        varchar_1000 title
+        text content
+        integer start_page_number
+        integer end_page_number
+        integer token_count
+        timestamptz created_at
+    }
+
+    vector_store {
+        uuid id PK
+        text content
+        jsonb metadata
+        vector_1024 embedding
+        bigint document_id "generated from metadata->>'document_id'"
+        bigint section_id "generated from metadata->>'section_id'"
+    }
+
+```
 
 # Assistant DB schema
+
+
+```mermaid
+erDiagram
+    CHAT {
+        bigint id PK
+        uuid conversation_id "UNIQUE"
+        text start_question
+        varchar_100 chat_name
+        varchar_100 user_id
+        varchar_256 created_by "NOT NULL, default 'service-account'"
+        timestamptz created_date "NOT NULL, default now()"
+        varchar_256 modified_by
+        timestamptz modified_date
+    }
+
+    QUESTION {
+        bigint id PK
+        bigint chat_id FK
+        uuid conversation_id "NOT NULL"
+        varchar_100 user_id
+        text question "NOT NULL"
+        varchar_1024 agent_name_list
+        text llm_response
+        jsonb source_list
+        jsonb document_list
+        varchar_50 user_feedback
+        varchar_100 status "CHECK IN (created, in progress, failed, completed, canceled, timed out, integration error); default 'created'"
+        text follow_up_question
+        varchar_256 created_by "NOT NULL, default 'service-account'"
+        timestamptz created_date "NOT NULL, default now()"
+        varchar_256 modified_by
+        timestamptz modified_date
+    }
+
+    DOCUMENT_RESULT {
+        bigint id PK
+        bigint question_id FK
+        text sql_text "NOT NULL"
+        text terms "NOT NULL"
+        jsonb rows
+        text response_message
+        varchar_256 created_by "NOT NULL, default 'service-account'"
+        timestamptz created_date "NOT NULL, default now()"
+    }
+
+    NLP2SQL_RESULT {
+        bigint id PK
+        bigint question_id FK
+        text sql_text "NOT NULL"
+        jsonb headers
+        jsonb rows
+        text response_message
+        varchar_256 routing_class
+        varchar_256 created_by "NOT NULL, default 'service-account'"
+        timestamptz created_date "NOT NULL, default now()"
+    }
+
+    CHAT ||--o{ QUESTION : "chat_id, ON DELETE CASCADE"
+    QUESTION ||--o{ DOCUMENT_RESULT : "question_id, ON DELETE CASCADE"
+    QUESTION ||--o{ NLP2SQL_RESULT : "question_id, ON DELETE CASCADE"
+```
+
 
