@@ -19,14 +19,23 @@ services:
     networks:
       - knowledge-network
 
+  memory-prompt-redis:
+    container_name: memory-prompt-redis
+    image: redis:7-alpine
+    command: redis-server
+    volumes:
+      - memory-prompt-redis-data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - knowledge-network
+
   rabbitmq:
     container_name: rabbitmq
-    image: rabbitmq:4-management
+    image: rabbitmq:4.1-management
     hostname: rabbitmq
     restart: always
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
@@ -71,7 +80,7 @@ services:
     image: postgres:17
     container_name: ti-assistant-db
     environment:
-      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assitant-db}
+      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assistant_db}
       POSTGRES_USER: ${ASSISTANT_USER:-assistant_user}
       POSTGRES_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
     ports:
@@ -131,7 +140,7 @@ services:
   # --- Spring Boot Services ---
   ti-knowledge-ui:
     container_name: ti-knowledge-ui
-    image: ti-ui-local:latest
+    image: ti-knowledge-ui-local:latest
     ports:
       - "5000:80"
     networks:
@@ -145,9 +154,17 @@ services:
     networks:
       - knowledge-network
 
+  ti-ai-question-ui:
+    container_name: ti-ai-question-ui
+    image: ti-ai-question-local:latest
+    ports:
+      - "4000:80"
+    networks:
+      - knowledge-network
+
   ti-knowledge-api:
     container_name: ti-knowledge-api
-    image: knowledge-local:latest
+    image: ti-knowledge-local:latest
     environment:
       SERVER_PORT: 8081
       OKTA_DOMAIN: ${OKTA_DOMAIN}
@@ -169,16 +186,18 @@ services:
 
   ti-orchestrator-api:
     container_name: ti-orchestrator-api
-    image: orchestrator-local:latest
+    image: ti-orchestrator-local:latest
     volumes:
-      - import-storage:${IMPORT_STORAGE_PATH}
+      - import_storage:${IMPORT_STORAGE_PATH:-/data/import}
+      - upload_storage:${UPLOAD_STORAGE_PATH:-/data/upload}
     environment:
       SERVER_PORT: 8082
       OKTA_DOMAIN: ${OKTA_DOMAIN}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
-      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-admin}
       IMPORT_STORAGE_PATH: ${IMPORT_STORAGE_PATH:-/data/import}
+      UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH:-/data/upload}
       ADMINS: ${ADMINS}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
@@ -195,16 +214,19 @@ services:
 
   ti-import-worker:
     container_name: ti-import-worker
-    image: import-local:latest
+    image: ti-import-worker-local:latest
+    volumes:
+      - import_storage:${IMPORT_STORAGE_PATH:-/data/import}
     environment:
       SERVER_PORT: 8083
+      IMPORT_STORAGE_PATH: ${IMPORT_STORAGE_PATH:-/data/import}
       OKTA_DOMAIN: ${OKTA_DOMAIN}
       KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
-      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-admin}
       ADMINS: ${ADMINS}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
@@ -222,7 +244,7 @@ services:
 
   ti-export-api:
     container_name: ti-export-api
-    image: export-local:latest
+    image: ti-export-local:latest
     environment:
       SERVER_PORT: 8084
       OKTA_DOMAIN: ${OKTA_DOMAIN}
@@ -230,8 +252,8 @@ services:
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
-      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-admin}
       ADMINS: ${ADMINS}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
@@ -249,23 +271,21 @@ services:
 
   ti-ai-orchestrator-api:
     container_name: ti-ai-orchestrator-api
-    image: ai-orchestrator-local:latest
-    volumes:
-      - upload-storage:${UPLOAD_STORAGE_PATH}
+    image: ti-ai-orchestrator-local:latest
     environment:
       SERVER_PORT: 8085
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
-      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
-      UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH}
-      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5432/assistant_db}
       ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
       ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
       OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
       OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
       CHAT_MODEL: ${CHAT_MODEL}
+      MEMORY_PROMPT_REDIS_CACHE_ENABLED: ${MEMORY_PROMPT_REDIS_CACHE_ENABLED:-false}
+      MEMORY_PROMPT_REDIS_CACHE_HOST: ${MEMORY_PROMPT_REDIS_CACHE_HOST:-memory-prompt-redis}
+      MEMORY_PROMPT_REDIS_CACHE_PORT: ${MEMORY_PROMPT_REDIS_CACHE_PORT:-6379}
 
       ADMINS: ${ADMINS}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
@@ -276,6 +296,8 @@ services:
       - prometheus
       - zipkin
       - rabbitmq
+      - ti-assistant-db
+      - memory-prompt-redis
     ports:
       - "8085:8085"
     networks:
@@ -283,23 +305,26 @@ services:
 
   ti-document-worker:
     container_name: ti-document-worker
-    image: document-local:latest
+    image: ti-document-worker-local:latest
+    volumes:
+      - upload_storage:${UPLOAD_STORAGE_PATH:-/data/upload}
     environment:
       SERVER_PORT: 8086
+      UPLOAD_STORAGE_PATH: ${UPLOAD_STORAGE_PATH:-/data/upload}
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
-      DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
-      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
+      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5432/document_db}
+      DOCUMENT_USER: ${DOCUMENT_USER:-postgres}
+      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-postgres}
       RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
-      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_PASS: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_PASS: ${RABBITMQ_PASS:-admin}
       MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
       OPEN_AI_API_KEY: ${OPEN_AI_API_KEY}
       OPEN_AI_ENDPOINT: ${OPEN_AI_ENDPOINT}
       OPEN_AI_COMPLETIONS_PATH: ${OPEN_AI_COMPLETIONS_PATH}
       CHAT_MODEL: ${CHAT_MODEL:-gpt-4.1-mini-2025-04-14}
-      IMAGE_MODEL: ${IMAGE_MODEL}
-      IMAGE_AI_COMPLETIONS_PATH: ${IMAGE_AI_COMPLETIONS_PATH}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-ada-002}
+      OPEN_AI_EMBEDDINGS_PATH: ${OPEN_AI_EMBEDDINGS_PATH:-/openai/deployments/text-embedding-ada-002/embeddings}
 
       PGVECTOR_INDEX_TYPE: ${PGVECTOR_INDEX_TYPE:-HNSW}
       PGVECTOR_DISTANCE_TYPE: ${PGVECTOR_DISTANCE_TYPE:-COSINE_DISTANCE}
@@ -330,10 +355,10 @@ services:
     environment:
       SERVER_PORT: 8087
       OKTA_DOMAIN: ${OKTA_DOMAIN}
-      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5433/document_db}
-      DOCUMENT_USER: ${DOCUMENT_USER:-document_user}
-      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-qwerty}
-      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      DOCUMENT_DB_URL: ${DOCUMENT_DB_URL:-jdbc:postgresql://ti-document-db:5432/document_db}
+      DOCUMENT_USER: ${DOCUMENT_USER:-postgres}
+      DOCUMENT_PASSWORD: ${DOCUMENT_PASSWORD:-postgres}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5432/assistant_db}
       ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
       ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
       MISTRAL_AI_API_KEY: ${MISTRAL_AI_API_KEY}
@@ -350,6 +375,7 @@ services:
       - prometheus
       - zipkin
       - ti-document-db
+      - ti-assistant-db
     ports:
       - "8087:8087"
     networks:
@@ -364,7 +390,7 @@ services:
       KNOWLEDGE_DB_URL: ${KNOWLEDGE_DB_URL:-jdbc:postgresql://ti-knowledge-db:5432/knowledge_db}
       KNOWLEDGE_USER: ${KNOWLEDGE_USER:-knowledge_user}
       KNOWLEDGE_PASSWORD: ${KNOWLEDGE_PASSWORD:-qwerty}
-      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5434/assistant_db}
+      ASSISTANT_DB_URL: ${ASSISTANT_DB_URL:-jdbc:postgresql://ti-assistant-db:5432/assistant_db}
       ASSISTANT_USER: ${ASSISTANT_USER:-assistant_user}
       ASSISTANT_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
 
@@ -381,36 +407,48 @@ services:
       - prometheus
       - zipkin
       - ti-knowledge-db
+      - ti-assistant-db
     ports:
       - "8088:8088"
     networks:
       - knowledge-network
 
-  localhost:
-    container_name: localhost
-    image: gateway-local:latest
+  ti-gateway-api:
+    container_name: ti-gateway-api
+    image: ti-gateway-local:latest
     environment:
       SERVER_PORT: 8080
       APPLICATION_URL: ${APPLICATION_URL:-http://localhost:8080}
-      KNOWLEDGE_BASE_URL: ${KNOWLEDGE_BASE_URL:-http://ti-knowledge-ui:5000}
-      AI_CHATBOT_BASE_URL: ${AI_CHATBOT_BASE_URL:-http://ti-ai-chatbot-ui:7000}
+      LOGOUT_URL: ${LOGOUT_URL:-http://localhost:8080/logout}
+      KNOWLEDGE_BASE_URL: ${KNOWLEDGE_BASE_URL:-http://localhost:5000}
+      AI_CHATBOT_BASE_URL: ${AI_CHATBOT_BASE_URL:-http://localhost:7000}
+      AI_QUESTION_BASE_URL: ${AI_QUESTION_BASE_URL:-http://localhost:4000}
       OKTA_DOMAIN: ${OKTA_DOMAIN}
       OKTA_OAUTH2_CLIENT_ID: ${OKTA_OAUTH2_CLIENT_ID}
       OKTA_OAUTH2_CLIENT_SECRET: ${OKTA_OAUTH2_CLIENT_SECRET}
       SESSION_SSL_ENABLED: ${SESSION_SSL_ENABLED:-false}
       SESSION_CACHE_HOST: redis
       SESSION_CACHE_PORT: ${SESSION_CACHE_PORT:-6379}
+      ADMINS: ${ADMINS}
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
 
       KNOWLEDGE_SERVICE: ${KNOWLEDGE_SERVICE:-ti-knowledge-api}
+      KNOWLEDGE_SERVICE_PORT: ${KNOWLEDGE_SERVICE_PORT:-8081}
       ORCHESTRATOR_SERVICE: ${ORCHESTRATOR_SERVICE:-ti-orchestrator-api}
+      ORCHESTRATOR_SERVICE_PORT: ${ORCHESTRATOR_SERVICE_PORT:-8082}
       IMPORT_SERVICE: ${IMPORT_SERVICE:-ti-import-worker}
+      IMPORT_SERVICE_PORT: ${IMPORT_SERVICE_PORT:-8083}
       EXPORT_SERVICE: ${EXPORT_SERVICE:-ti-export-api}
+      EXPORT_SERVICE_PORT: ${EXPORT_SERVICE_PORT:-8084}
       AI_ORCHESTRATOR_SERVICE: ${AI_ORCHESTRATOR_SERVICE:-ti-ai-orchestrator-api}
+      AI_ORCHESTRATOR_SERVICE_PORT: ${AI_ORCHESTRATOR_SERVICE_PORT:-8085}
       DOCUMENT_SERVICE: ${DOCUMENT_SERVICE:-ti-document-worker}
+      DOCUMENT_SERVICE_PORT: ${DOCUMENT_SERVICE_PORT:-8086}
       DOCUMENT_AGENT: ${DOCUMENT_AGENT:-ti-document-agent}
+      DOCUMENT_AGENT_PORT: ${DOCUMENT_AGENT_PORT:-8087}
       SQL_AGENT: ${SQL_AGENT:-ti-sql-agent}
+      SQL_AGENT_PORT: ${SQL_AGENT_PORT:-8088}
 
     logging: *default-logging
     depends_on:
@@ -430,6 +468,7 @@ volumes:
   import_storage:
   upload_storage:
   redis-data:
+  memory-prompt-redis-data:
   rabbitmq-data:
   loki-data:
   grafana-data:
