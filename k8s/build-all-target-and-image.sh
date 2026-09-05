@@ -16,4 +16,4 @@ fi
 path_to_repo="$1"
 
 ./build-all-targets.sh "$path_to_repo"
-./build-all-docker-image.sh "$path_to_repo"
+./build-all-docker-images.sh "$path_to_repo"

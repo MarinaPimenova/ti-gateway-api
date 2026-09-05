@@ -112,6 +112,32 @@ Repeat the Gradle/npm pattern for the remaining services, using the image tag
 from the table in the Overview section. `docker compose` will refuse to start a
 service whose image hasn't been built yet.
 
+### Automated build (optional)
+
+Instead of building each repository by hand, `k8s/build-all-target-and-image.sh`
+builds every artifact and Docker image for all 12 components in one pass:
+
+```bash
+cd k8s
+./build-all-target-and-image.sh <path-to-repository-root>
+```
+
+`<path-to-repository-root>` is the parent directory containing all sibling
+repos side by side (e.g. `~/ti-2026`, the directory that holds `ti-gateway-api`,
+`ti-knowledge-api`, etc.). It runs two steps, which can also be run separately:
+
+- `./build-all-targets.sh <path-to-repository-root>` — builds each artifact
+  (Maven for the gateway, Gradle for the other backend services, `npm` for
+  the UIs).
+- `./build-all-docker-images.sh <path-to-repository-root>` — builds the
+  matching `*-local` Docker image for each service, tagged as
+  `docker-compose-full.yml` expects.
+
+Both scripts build every service, warn and skip on a per-service failure
+rather than aborting, and report a final summary. `ti-sql-agent`,
+`ti-ai-chatbot-ui`, and `ti-ai-question-ui` are expected to fail until those
+repositories have a build file/Dockerfile — this doesn't block the rest.
+
 ---
 
 ## 3. Start the platform
