@@ -284,15 +284,15 @@ flowchart LR
 
     Knowledge["ti-knowledge-api"]
 
-    Job["ti-orchestrator-api"]
+    Orchestrator["ti-orchestrator-api"]
 
-    Import["ti-import-api"]
+    Import["ti-import-worker"]
 
     Export["ti-export-api"]
 
-    Audit["ti-audit-api"]
+    AI_Orchestrator["ti-ai-orchestrator-api"]
 
-    Notification["ti-notification-api"]
+    Document_Agent["ti-document-agent"]
 
     Prometheus["Prometheus"]
 
@@ -303,26 +303,26 @@ flowchart LR
     User --> Gateway
 
     Gateway --> Knowledge
-    Gateway --> Job
+    Gateway --> Orchestrator
 
-    Job --> Import
-    Job --> Export
+    Orchestrator --> Import
+    Orchestrator --> Export
 
     Gateway --> Prometheus
     Knowledge --> Prometheus
-    Job --> Prometheus
+    Orchestrator --> Prometheus
     Import --> Prometheus
     Export --> Prometheus
-    Audit --> Prometheus
-    Notification --> Prometheus
+    AI_Orchestrator --> Prometheus
+    Document_Agent --> Prometheus
 
     Gateway --> Zipkin
     Knowledge --> Zipkin
-    Job --> Zipkin
+    Orchestrator --> Zipkin
     Import --> Zipkin
     Export --> Zipkin
-    Audit --> Zipkin
-    Notification --> Zipkin
+    AI_Orchestrator --> Zipkin
+    Document_Agent --> Zipkin
 
     Prometheus --> Grafana
 ```

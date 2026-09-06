@@ -99,13 +99,17 @@ ti-knowledge-platform
 │   ├── Spring Boot 4
 │   └── Dockerfile
 │
-├── ti-import-api
+├── ti-import-worker
 │
+├── ti-document-worker
+|
 ├── ti-export-api
 │
-├── ti-audit-api
+├── ti-ai-orchestrator-api
 │
-├── ti-notification-api
+├── ti-document-agent
+│
+├── ti-sql-agent
 │
 ├── docs
 │
@@ -564,13 +568,17 @@ Kubernetes Namespace
 |
 ├── ti-orchestrator-api
 |
-├── ti-import-api
+├── ti-import-worker
+|
+├── ti-document-worker
 |
 ├── ti-export-api
 |
-├── ti-audit-api
+├── ti-ai-orchestrator-api
 |
-└── ti-notification-api
+├── ti-document-agent
+|
+└── ti-sql-agent
 ```
 
 ---

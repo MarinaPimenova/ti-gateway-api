@@ -9,9 +9,10 @@ scrape_configs:
       - targets:
           - 'localhost:8080' # gateway-api
           - 'localhost:8081' # knowledge-api
-
-#          - 'ti-orchestrator-api:8082'
-#          - 'ti-import-api:8083'
-#          - 'ti-export-api:8084'
-#          - 'ti-audit-api:8085'
-#          - 'ti-notification-api:8086'
+          - 'localhost:8082' # orchestrator-api
+          - 'localhost:8083' # import-worker
+          - 'localhost:8084' # export-api
+          - 'localhost:8085' # ai-orchestrator-api
+          - 'localhost:8086' # document-worker
+          - 'localhost:8087' # document-agent
+          - 'localhost:8088' # sql-agent

@@ -33,25 +33,35 @@ flowchart TB
 
     User["User"]
 
-    CloudFront["CloudFront<br/>CDN"]
+    Route53["Route 53"]
 
     ALB["Application Load Balancer"]
 
-    UI["ti-ui<br/>React + Nginx"]
+    EKS+Ingres["EKS<br/>Ingres(Nginx)"]
 
+    Knowledge-UI[NGINX<br/>ti-knowledge-ui]
+
+    AI-Question-UI[NGINX<br/>ti-ai-question-ui]
+
+    AI-Chatbot-UI[NGINX<br/>ti-ai-chatbot-ui]
+    
     Gateway["ti-gateway-api"]
 
     Knowledge["ti-knowledge-api"]
 
     Orchestrator["ti-orchestrator-api"]
 
-    Import["ti-import-api"]
+    Import["ti-import-worker"]
+
+    Document_Worker["ti-document-worker"]
 
     Export["ti-export-api"]
 
-    Audit["ti-audit-api"]
+    AI_Orchestrator["ti-ai-orchestrator-api"]
 
-    Notification["ti-notification-api"]
+    Document_Agent["ti-document-agent"]
+
+    SQL_Agent["ti-sql-agent"]
 
     Rabbit["RabbitMQ"]
 
@@ -59,33 +69,37 @@ flowchart TB
 
     RDS1["RDS PostgreSQL<br/>Knowledge DB"]
 
-    RDS2["RDS PostgreSQL<br/>Job DB"]
+    RDS2["RDS PostgreSQL<br/>Document DB"]
 
-    RDS3["RDS PostgreSQL<br/>Audit DB"]
+    RDS3["RDS PostgreSQL<br/>Assistant DB"]
 
     Secrets["AWS Secrets Manager"]
 
     Monitoring["CloudWatch<br/>Prometheus<br/>Grafana"]
 
 
-    User --> CloudFront
+    User --> Route53
 
-    CloudFront --> ALB
+    Route53 --> ALB
+    
+    ALB --> EKS+Ingres
 
-    ALB --> UI
+    EKS+Ingres --> Knowledge-UI
 
-    ALB --> Gateway
+    EKS+Ingres --> Gateway
 
+    Knowledge-UI --> AI-Question-UI
+    Knowledge-UI --> AI-Chatbot-UI
+    
     Gateway --> Knowledge
     Gateway --> Orchestrator
+    Gateway --> Export
+    Gateway --> AI_Orchestrator
 
     Orchestrator --> Rabbit
 
     Rabbit --> Import
-    Rabbit --> Export
-    Rabbit --> Audit
-    Rabbit --> Notification
-
+    Rabbit --> Document_Worker
 
     Knowledge --> RDS1
 
@@ -93,20 +107,47 @@ flowchart TB
 
     Export --> RDS1
 
-    Orchestrator --> RDS2
+    Document_Worker --> RDS2
 
-    Audit --> RDS3
+    Document_Agent --> RDS2
+    Document_Agent --> RDS3
+    SQL_Agent --> RDS1
+    SQL_Agent --> RDS3
+    AI_Orchestrator --> RDS3
 
-
-    ECR --> UI
+    ECR --> Knowledge-UI
+    ECR --> AI-Question-UI
+    ECR --> AI-Chatbot-UI
     ECR --> Gateway
     ECR --> Knowledge
+    ECR --> Export
+    ECR --> Orchestrator
+    ECR --> AI_Orchestrator
+    ECR --> Import
+    ECR --> Document_Worker
+    ECR --> Document_Agent
+    ECR --> SQL_Agent
 
     Secrets --> Gateway
     Secrets --> Knowledge
-
+    Secrets --> Export
+    Secrets --> Orchestrator
+    Secrets --> AI_Orchestrator
+    Secrets --> Import
+    Secrets --> Document_Worker
+    Secrets --> Document_Agent
+    Secrets --> SQL_Agent
+    
     Monitoring --> Gateway
     Monitoring --> Knowledge
+    Monitoring --> Export
+    Monitoring --> Orchestrator
+    Monitoring --> AI_Orchestrator
+    Monitoring --> Import
+    Monitoring --> Document_Worker
+    Monitoring --> Document_Agent
+    Monitoring --> SQL_Agent
+
 ````
 
 ---
@@ -137,9 +178,13 @@ Example:
 ```text
 EKS Cluster
 
+|__ Ingress Controller / NGINX
 |
+├── ti-knowledge-ui
 |
-├── ti-ui
+├── ti-ai-question-ui
+|
+├── ti-ai-chatbot-ui
 |
 ├── ti-gateway-api
 |
@@ -147,13 +192,17 @@ EKS Cluster
 |
 ├── ti-orchestrator-api
 |
-├── ti-import-api
+├── ti-import-worker
 |
 ├── ti-export-api
 |
-├── ti-audit-api
+├── ti-document-worker
 |
-└── ti-notification-api
+├── ti-ai-orchestrator-api
+|
+├── ti-document-agent
+|
+└── ti-sql-agent
 ```
 
 ---
@@ -163,24 +212,6 @@ EKS Cluster
 ## Amazon Elastic Container Registry (ECR)
 
 Docker images are stored in Amazon ECR.
-
-Example:
-
-```text
-AWS ECR
-
-|
-|
-├── ti-ui
-|
-├── ti-gateway-api
-|
-├── ti-knowledge-api
-|
-├── ti-import-api
-|
-└── ti-export-api
-```
 
 CI/CD pipeline:
 
@@ -243,7 +274,7 @@ User
 
  v
 
-CloudFront
+Route 53
 
  |
 
@@ -265,11 +296,11 @@ ti-gateway-api
 
  |
 
- +-------------------+
- |                   |
- v                   v
+ +-------------------+-------------------+
+ |                   |                   |
+ v                   v                   v
 
-Knowledge API    Orchestrator API
+Knowledge API    Orchestrator API       ...
 
 ```
 
@@ -277,17 +308,15 @@ Knowledge API    Orchestrator API
 
 # Database Architecture
 
-The platform follows the:
-
-> Database per Service pattern
-
 AWS deployment:
 
-| Service             | Database              |
-| ------------------- | --------------------- |
-| ti-knowledge-api    | Amazon RDS PostgreSQL |
-| ti-orchestrator-api | Amazon RDS PostgreSQL |
-| ti-audit-api        | Amazon RDS PostgreSQL |
+
+| Database            | Responsibility                                                                      |
+|---------------------|-------------------------------------------------------------------------------------|
+| [ti-knowledge-db](https://github.com/MarinaPimenova/ti-knowledge-db) | Store questions, their answers and their metadata such as:Tags,question level, etc. |
+| [ti-document-db](https://github.com/MarinaPimenova/ti-document-db)  | AI Chatbot: Store embeddings of the uploaded documents                              |
+| [ti-assistant-db](https://github.com/MarinaPimenova/ti-assistant-db) | AI Chatbot: Store users messages and the results of their processing                |
+
 
 Benefits:
 
@@ -489,7 +518,7 @@ User uploads file
 
         v
 
-ti-import-api
+ti-import-worker
 
         |
 

@@ -63,5 +63,5 @@ In addition to GoF design patterns, the platform demonstrates several enterprise
 | Resource Server | Validates JWT access tokens before serving protected resources. | All backend microservices validate JWT tokens issued by Okta.                      |
 | Circuit Breaker | Prevents repeated calls to failing services. | Resilience4j protects remote service communication.                                |
 | Retry | Automatically retries transient failures. | Retry temporary failures when calling remote services or RabbitMQ.                 |
-| Audit Logging | Records business actions for traceability and compliance. | `ti-audit-api` stores login, CRUD, import, and export events.                      |
+| Audit Logging | Records business actions for traceability and compliance. |                       |
 | Health Check | Exposes application health for monitoring and orchestration. | Spring Boot Actuator provides `/actuator/health` endpoints for Kubernetes.         |

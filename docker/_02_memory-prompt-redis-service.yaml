@@ -1,0 +1,12 @@
+services:
+  memory-prompt-redis:
+    container_name: ti-memory-prompt-redis
+    image: redis:7-alpine
+    command: redis-server
+    volumes:
+      - memory-prompt-redis-data:/data
+    ports:
+      - "6380:6379"
+
+volumes:
+  memory-prompt-redis-data:

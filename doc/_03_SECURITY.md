@@ -2,7 +2,8 @@
 
 ## Overview
 
-The **TI Knowledge Platform** uses a secure OAuth 2.0 / OpenID Connect (OIDC) architecture based on **Okta Hosted Login**, **Spring Security OAuth2 Client**, and **JWT-based resource server authentication**.
+The **TI Knowledge Platform** uses a secure OAuth 2.0 / OpenID Connect (OIDC) architecture based on 
+**Okta Hosted Login**, **Spring Security OAuth2 Client**, and **JWT-based resource server authentication**.
 
 The security architecture separates authentication responsibilities:
 
@@ -39,11 +40,9 @@ flowchart LR
 
     Knowledge["ti-knowledge-api<br/>OAuth2 Resource Server"]
 
-    Import["ti-import-api<br/>OAuth2 Resource Server"]
+    Import["ti-import-worker<br/>OAuth2 Resource Server"]
 
     Export["ti-export-api<br/>OAuth2 Resource Server"]
-
-    Audit["ti-audit-api<br/>OAuth2 Resource Server"]
 
     User --> Browser
 
@@ -56,7 +55,6 @@ flowchart LR
     Gateway --> Knowledge
     Gateway --> Import
     Gateway --> Export
-    Gateway --> Audit
 ````
 
 ---
@@ -541,20 +539,7 @@ okta:
 ```
 
 ---
-
-# Audit Security Events
-
-Security events are stored by:
-
-```
-ti-gateway-api
-
-        |
-
-        v
-
-ti-audit-api
-```
+# Audit
 
 Examples:
 

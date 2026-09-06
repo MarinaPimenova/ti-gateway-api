@@ -3,7 +3,7 @@ services:
     image: postgres:17
     container_name: ti-assistant-db
     environment:
-      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assitant-db}
+      POSTGRES_DB: ${ASSISTANT_DB_NAME:-assistant_db}
       POSTGRES_USER: ${ASSISTANT_USER:-assistant_user}
       POSTGRES_PASSWORD: ${ASSISTANT_PASSWORD:-qwerty}
     ports:
