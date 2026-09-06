@@ -41,7 +41,6 @@ The platform follows:
 
 - Microservices Architecture
 - API Gateway + BFF Patterns
-- Database per Service
 - Event-Driven Architecture
 - Asynchronous Processing
 - Stateless Services
