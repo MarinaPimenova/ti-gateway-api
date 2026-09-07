@@ -1,18 +1,25 @@
-### ti-knowledge-api
-GET http://localhost:8080/api/v1/knowledge/questions
-Accept: application/json
-Authorization: Bearer <JWT>
+### Gateway-native endpoints (handled by ti-gateway-api itself, not proxied to a backend)
 
-###
-GET http://localhost:8080/api/v1/knowledge/projects
-Accept: application/json
-Authorization: Bearer <JWT>
+### Version
+GET http://localhost:8080/rest/v1/version
+Accept: text/plain
 
 ###
 
-### ti-orchestrator-api
-GET http://localhost:8080/api/v1/orchestrator/questions
+### Health
+GET http://localhost:8080/actuator/health
 Accept: application/json
-Authorization: Bearer <JWT>
+
+###
+
+### Current OIDC ID token — requires an authenticated browser session (see docker/README section in README.md)
+GET http://localhost:8080/api/v1/token
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### Logout (redirects to Okta logout, then back to the dashboard SPA)
+GET http://localhost:8080/logout
 
 ###

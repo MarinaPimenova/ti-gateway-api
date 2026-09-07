@@ -1,0 +1,147 @@
+### ti-knowledge-api — proxied through the gateway at /api/v1/knowledge/**
+#
+# /api/** requires an authenticated gateway session: log in via the browser at
+# http://localhost:8080 (redirects through Okta), then copy the `SESSION` cookie
+# value from dev tools into the Cookie header below. The gateway attaches its own
+# OIDC id_token to the downstream call — a client Authorization header is ignored.
+
+# Authorization: Bearer XXX
+
+
+### List questions
+GET http://localhost:8080/api/v1/knowledge/questions
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+
+### List questions
+GET http://localhost:8080/api/v1/knowledge/questions
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+
+### List questions
+GET http://localhost:8080/api/v1/knowledge/questions
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+
+### List questions
+GET http://localhost:8080/api/v1/knowledge/questions
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### List questions
+GET http://localhost:8080/api/v1/knowledge/questions
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### Number of questions
+GET http://localhost:8080/api/v1/knowledge/questions
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### Get question by id
+GET http://localhost:8080/api/v1/knowledge/questions/1
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### Create question
+POST http://localhost:8080/api/v1/knowledge/questions
+Content-Type: application/json
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+{
+  "question": "What is durability?",
+  "shortAnswer": "Durability ensures that changes applied by a committed transaction survive system failures.",
+  "detailedAnswer": "It is one of the ACID properties, typically implemented via write-ahead logging.",
+  "questionLevelId": 1,
+  "codeExample": {
+    "language": "JAVA",
+    "sourceCode": "connection.commit();"
+  },
+  "tagIds": [17],
+  "projectIds": [],
+  "resources": []
+}
+
+###
+
+### Update question
+PUT http://localhost:8080/api/v1/knowledge/questions/1
+Content-Type: application/json
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+{
+  "id": 1,
+  "question": "What is durability? (updated)",
+  "shortAnswer": "Durability guarantees committed changes survive crashes.",
+  "detailedAnswer": "Implemented via write-ahead logging and checkpointing.",
+  "questionLevel": { "questionLevelId": 1, "difficultyCode": "EASY" },
+  "tags": [{ "id": 17, "tag": "transactions" }],
+  "resources": [],
+  "projects": []
+}
+
+###
+
+### Delete question
+DELETE http://localhost:8080/api/v1/knowledge/questions/1
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### List projects
+# response:
+# [{"id": 1, "name": "Knowledge Platform"}, {"id": 2, "name": "Interview Preparation App"}]
+GET http://localhost:8080/api/v1/knowledge/projects
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### projects count
+# example:
+# 5
+GET http://localhost:8080/api/v1/knowledge/projects/count
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### projects count
+# example:
+# 5
+GET http://localhost:8080/rest/v1/knowledge/projects/count
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### List tags
+GET http://localhost:8080/api/v1/knowledge/tags
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
+
+### List question levels
+GET http://localhost:8080/api/v1/knowledge/qlevels
+Accept: application/json
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###

@@ -1,0 +1,328 @@
+{
+  "meta": {
+    "generatedAt": "2026-09-05T20:52:41.124Z",
+    "rangeLabel": "all",
+    "agents": [
+      "claude"
+    ],
+    "projectFilter": "all",
+    "totals": {
+      "sessions": 1,
+      "durationMs": 28004972,
+      "turns": 68,
+      "files": 12,
+      "netLines": 506,
+      "toolCallsTotal": 78,
+      "toolSuccessRate": 97.4,
+      "totalCostUSD": 5.0763465,
+      "cacheReadCostUSD": 2.2266675,
+      "pricedSessions": 1
+    },
+    "unpricedModels": [],
+    "coverage": [
+      {
+        "agentName": "claude",
+        "total": 1,
+        "priced": 1,
+        "withLog": 1
+      }
+    ],
+    "userEmail": "marina_pimenova@epam.com",
+    "periodStart": "2026-09-05T12:35:12.980Z",
+    "periodEnd": "2026-09-05T20:21:57.952Z"
+  },
+  "sessions": [
+    {
+      "sessionId": "05a945b8-7c95-4833-bb5e-725bc98cd03c",
+      "agentName": "claude",
+      "provider": "ai-run-sso",
+      "title": "Please generate complete instruction for local setup and run in docker compose the TI Knowledge platform. Take into account the following: - docker/docker-compose-full.yml - if this configuration contains contradictions please fix them. - docker/env.example - align this file according to the environment variables that are mentioned in docker/docker-compose-full.yml. - doc/_06_LOCAL_SETUP.md - As a result, this file should be refactored. You should be specific and concise.",
+      "project": "/Users/Marina_Pimenova/ti-2026/ti-gateway-api",
+      "branch": "feature/TI-25_ai_orchestrator",
+      "startTime": 1788611712980,
+      "durationMs": 28004972,
+      "turns": 68,
+      "fileOps": 12,
+      "linesAdded": 526,
+      "linesRemoved": 20,
+      "linesModified": 0,
+      "netLines": 506,
+      "filesChanged": 7,
+      "filesWritten": 5,
+      "filesEdited": 4,
+      "toolCallsTotal": 78,
+      "toolCallsSuccess": 76,
+      "toolCallsFailure": 2,
+      "models": [
+        "claude-sonnet-5"
+      ],
+      "languages": [
+        "markdown",
+        "yaml"
+      ],
+      "tools": [
+        {
+          "toolName": "Bash",
+          "totalCalls": 42,
+          "successCount": 42,
+          "failureCount": 0,
+          "successRate": 100
+        },
+        {
+          "toolName": "Read",
+          "totalCalls": 16,
+          "successCount": 16,
+          "failureCount": 0,
+          "successRate": 100
+        },
+        {
+          "toolName": "Edit",
+          "totalCalls": 14,
+          "successCount": 13,
+          "failureCount": 1,
+          "successRate": 92.85714285714286
+        },
+        {
+          "toolName": "Write",
+          "totalCalls": 6,
+          "successCount": 5,
+          "failureCount": 1,
+          "successRate": 83.33333333333334
+        }
+      ],
+      "tokens": {
+        "input": 26783,
+        "output": 89542,
+        "cacheRead": 7422225,
+        "cacheCreation": 237700,
+        "cacheCreation1h": 237700,
+        "total": 7776250
+      },
+      "costUSD": 5.0763465,
+      "cacheReadCostUSD": 2.2266675,
+      "perModelCost": [
+        {
+          "model": "claude-sonnet-5",
+          "tokens": {
+            "input": 26783,
+            "output": 89542,
+            "cacheRead": 7422225,
+            "cacheCreation": 237700,
+            "cacheCreation1h": 237700,
+            "total": 7776250
+          },
+          "costUSD": 5.0763465,
+          "unpriced": false
+        }
+      ],
+      "hadLog": true,
+      "agentSessionFile": "/Users/Marina_Pimenova/.claude/projects/-Users-Marina-Pimenova-ti-2026-ti-gateway-api/3c2743ca-4770-439e-9e5c-38db66be6aca.jsonl",
+      "costSeries": [
+        {
+          "t": 1788633876015,
+          "cost": 0.0832092,
+          "tokens": 55745
+        },
+        {
+          "t": 1788633931556,
+          "cost": 0.365268,
+          "tokens": 210977
+        },
+        {
+          "t": 1788633964396,
+          "cost": 0.4576131,
+          "tokens": 296380
+        },
+        {
+          "t": 1788633987108,
+          "cost": 0.5706906,
+          "tokens": 472479
+        },
+        {
+          "t": 1788634029689,
+          "cost": 0.700539,
+          "tokens": 656739
+        },
+        {
+          "t": 1788634050946,
+          "cost": 0.800409,
+          "tokens": 847998
+        },
+        {
+          "t": 1788634057147,
+          "cost": 0.8373888,
+          "tokens": 944618
+        },
+        {
+          "t": 1788634097767,
+          "cost": 0.9146616,
+          "tokens": 1140346
+        },
+        {
+          "t": 1788634130505,
+          "cost": 1.0050579,
+          "tokens": 1340635
+        },
+        {
+          "t": 1788634135648,
+          "cost": 1.0480749,
+          "tokens": 1442211
+        },
+        {
+          "t": 1788634165063,
+          "cost": 1.1472879,
+          "tokens": 1648128
+        },
+        {
+          "t": 1788634260076,
+          "cost": 1.4544114,
+          "tokens": 1879079
+        },
+        {
+          "t": 1788634278334,
+          "cost": 1.5611376,
+          "tokens": 2115391
+        },
+        {
+          "t": 1788634283974,
+          "cost": 1.6106328,
+          "tokens": 2235096
+        },
+        {
+          "t": 1788634307722,
+          "cost": 1.7511009,
+          "tokens": 2485475
+        },
+        {
+          "t": 1788634494888,
+          "cost": 1.9651596,
+          "tokens": 2759407
+        },
+        {
+          "t": 1788634499882,
+          "cost": 2.0182284,
+          "tokens": 2897637
+        },
+        {
+          "t": 1788634672202,
+          "cost": 2.1436518,
+          "tokens": 3180164
+        },
+        {
+          "t": 1788634709821,
+          "cost": 2.2941471,
+          "tokens": 3470504
+        },
+        {
+          "t": 1788634759689,
+          "cost": 2.4805983,
+          "tokens": 3771544
+        },
+        {
+          "t": 1788635053959,
+          "cost": 2.5319619,
+          "tokens": 3922570
+        },
+        {
+          "t": 1788635093069,
+          "cost": 2.6499423,
+          "tokens": 4226856
+        },
+        {
+          "t": 1788636476953,
+          "cost": 2.9651031,
+          "tokens": 4396662
+        },
+        {
+          "t": 1788636552876,
+          "cost": 3.0366522,
+          "tokens": 4571911
+        },
+        {
+          "t": 1788636559176,
+          "cost": 3.0719931,
+          "tokens": 4660670
+        },
+        {
+          "t": 1788637041512,
+          "cost": 3.4199358,
+          "tokens": 4840997
+        },
+        {
+          "t": 1788637060288,
+          "cost": 3.5084253,
+          "tokens": 5026302
+        },
+        {
+          "t": 1788637075006,
+          "cost": 3.5616144,
+          "tokens": 5121670
+        },
+        {
+          "t": 1788637175987,
+          "cost": 3.8665215,
+          "tokens": 5338892
+        },
+        {
+          "t": 1788637803015,
+          "cost": 3.9553053,
+          "tokens": 5558634
+        },
+        {
+          "t": 1788639123375,
+          "cost": 4.1673027,
+          "tokens": 5790681
+        },
+        {
+          "t": 1788639136144,
+          "cost": 4.264839,
+          "tokens": 5913315
+        },
+        {
+          "t": 1788639273409,
+          "cost": 4.4682234,
+          "tokens": 6170951
+        },
+        {
+          "t": 1788639289035,
+          "cost": 4.5699636,
+          "tokens": 6431842
+        },
+        {
+          "t": 1788639298628,
+          "cost": 4.6237293,
+          "tokens": 6563504
+        },
+        {
+          "t": 1788639325248,
+          "cost": 4.7235927,
+          "tokens": 6828324
+        },
+        {
+          "t": 1788639339070,
+          "cost": 4.8161847,
+          "tokens": 7095296
+        },
+        {
+          "t": 1788639372440,
+          "cost": 4.9293354,
+          "tokens": 7365308
+        },
+        {
+          "t": 1788639695221,
+          "cost": 4.9732437,
+          "tokens": 7501393
+        },
+        {
+          "t": 1788639717952,
+          "cost": 5.0763465,
+          "tokens": 7776250
+        }
+      ],
+      "skillInvocations": [],
+      "agentInvocations": [],
+      "commandInvocations": [],
+      "sessionSource": "Pure chat"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+### ti-document-worker — direct call, port 8086
+# NOT reachable through the gateway: these endpoints live under /rest/v1/**, and the
+# gateway only proxies /api/v1/**. Call the service directly when testing standalone.
+
+### Upload a document file — starts async ETL (embeddings + text sections)
+POST http://localhost:8086/rest/v1/documents
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="quarterly-report.pdf"
+Content-Type: application/pdf
+
+< ./quarterly-report.pdf
+--WebAppBoundary--
+
+###
+
+### Load a document from a URL instead of uploading a file
+POST http://localhost:8086/rest/v1/load-url
+Content-Type: application/json
+Accept: application/json
+
+{
+  "url": "https://example.com/docs/annual-compliance-guide.pdf"
+}
+
+###
+
+### Version check
+GET http://localhost:8086/rest/v1/version
+Accept: text/plain
+
+###
