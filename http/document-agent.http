@@ -1,0 +1,39 @@
+### ti-document-agent — direct call, port 8087
+# NOT reachable through the gateway: these endpoints live under /rest/v1/**, and the
+# gateway only proxies /api/v1/**. Call the service directly when testing standalone.
+
+### Ask the RAG agent a question about uploaded documents
+POST http://localhost:8087/rest/v1/docs?conversationId=b3f1c9a2-7e4d-4a1b-9c3e-1a2b3c4d5e6f
+Content-Type: application/json
+Accept: application/json
+
+{
+  "questionId": 42,
+  "question": "What are the key risk factors mentioned in the uploaded document?"
+}
+
+###
+
+### List uploaded documents
+GET http://localhost:8087/rest/v1/documents
+Accept: application/json
+
+###
+
+### Generate questions from a document
+POST http://localhost:8087/rest/v1/documents/101/question-generation
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userMessage": "Generate questions about the compliance obligations described in this document.",
+  "requestedQuestionCount": 3
+}
+
+###
+
+### Version check
+GET http://localhost:8087/rest/v1/version
+Accept: text/plain
+
+###

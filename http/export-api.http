@@ -1,0 +1,21 @@
+### ti-export-api — direct call, port 8084
+# NOT reachable through the gateway: this endpoint lives under /rest/v1/**, and the
+# gateway only proxies /api/v1/**. Call the service directly when testing standalone.
+
+### Export all questions as CSV (binary attachment response)
+GET http://localhost:8084/rest/v1/export/csv?fields=all
+Accept: application/octet-stream
+
+###
+
+### Export a filtered subset as Excel
+GET http://localhost:8084/rest/v1/export/excel?fields=id,question,shortAnswer&projects=1&tags=17
+Accept: application/octet-stream
+
+###
+
+### Version check
+GET http://localhost:8084/rest/v1/version
+Accept: text/plain
+
+###

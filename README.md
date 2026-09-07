@@ -1,5 +1,18 @@
 # Training Project - Training Internal (TI) Knowledge Platform
 
+## Table of Contents
+
+- [Goal](#goal)
+- [Learning Objectives](#learning-objectives)
+- [Architecture](#architecture)
+- [Microservices](#microservices) / [Databases](#databases)
+- [Communication](#communication) / [Database Architecture](#database-architecture)
+- [Security](#security) / [Technology Stack](#technology-stack)
+- [Resilience](#resilience) / [Observability](#observability) / [CI/CD](#cicd)
+- [Local Development](#local-development) / [AWS Deployment](#aws-deployment)
+- [Documentation](#documentation) / [DB Schemas](#knowledge-db-schema)
+- **[Run Locally as a Standalone Service](#run-locally-as-a-standalone-service)**
+
 ## Goal
 
 Build a production-like cloud-native microservices application that demonstrates modern Java 
@@ -855,4 +868,56 @@ erDiagram
     QUESTION ||--o{ NLP2SQL_RESULT : "question_id, ON DELETE CASCADE"
 ```
 
+---
 
+# Run Locally as a Standalone Service
+
+This section explains how to run `ti-gateway-api` on your host machine while its dependencies
+(databases, RabbitMQ, backend microservices) run in Docker, and how to exercise the platform's
+functionality using the `.http` files under [`http/`](http).
+
+## 1. Choose a Docker Compose profile
+
+All compose files live under [`docker/`](docker). Copy `docker/env.example` to `docker/env` and
+fill in the **required** values (`OKTA_*`, `ADMINS`, `OPEN_AI_*`) before starting anything.
+
+| Profile | Command (from `docker/`) | What runs in Docker | What you run locally |
+|---|---|---|---|
+| **Infra only** | `docker compose -f docker-compose-infra.yml --env-file env up -d` | Redis, RabbitMQ, `ti-knowledge-db`, `ti-document-db`, `ti-assistant-db`, Prometheus, Loki, Zipkin, Grafana | `ti-gateway-api` + any backend service(s) you're iterating on, started from IntelliJ IDEA |
+| **Full stack** | `./run-compose.sh` (wraps `docker compose -f docker-compose-full.yml --env-file env up`) | Every service in the diagram above — UIs, gateway, all APIs/workers/agents, and infra | Nothing — pure black-box functional testing |
+| **Individual infra pieces** | e.g. `docker compose -f _04_knowledge_postgres.yaml up` | One service at a time | Everything else |
+
+`run-compose.sh` requires the local images to be built first (`ti-gateway-local`,
+`ti-knowledge-local`, `ti-ui-local`, etc. — see `docker/README.md` and `k8s/build-all-target-and-image.sh`).
+
+## 2. Verify the gateway is up
+
+```text
+GET http://localhost:8080/rest/v1/version
+Accept: text/plain
+```
+```text
+GET http://localhost:8080/actuator/health
+Accept: application/json
+```
+See [`http/gateway.http`](http/gateway.http) and [`http/version.http`](http/version.http).
+
+## 3. Authenticate (required for any `/api/v1/**` call)
+
+`/api/**` requires an authenticated session (`SecurityConfig`); the gateway does **not** accept a
+client-supplied JWT — it injects its own OIDC id token when forwarding to backends. To test
+proxied endpoints:
+
+1. Open `http://localhost:8080` in a browser and log in through Okta.
+2. Open dev tools → Application/Storage → Cookies, copy the `SESSION` cookie value.
+3. Paste it into the `Cookie: SESSION=<SESSION_COOKIE_VALUE>` header in the `.http` files below.
+
+## 4. Known gateway routing limitation
+
+`GatewayController` proxies only paths under `/api/v1/**`, and forwards them downstream **with
+the `/api/v1` prefix preserved**, stripping just the `/{service}` segment
+(`DownstreamService.getDownstreamServiceUrl()`). This means a backend is only reachable through
+the gateway if its own controllers are mapped under `/api/v1/**`. 
+`GatewayExtController` proxies only paths under `/rest/v1/**`, and forwards them downstream **with
+the `/rest/v1` prefix preserved**, stripping just the `/{service}` segment
+(`DownstreamService.getDownstreamServiceUrl()`).

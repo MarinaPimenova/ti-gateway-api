@@ -1,0 +1,24 @@
+### ti-orchestrator-api — proxied through the gateway at /api/v1/orchestrator/**
+# Same session-cookie requirement as knowledge.http.
+
+### Start an import (multipart upload) — returns an importId immediately, processing is async
+POST http://localhost:8080/api/v1/orchestrator/import
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="questions.csv"
+Content-Type: text/csv
+
+QUESTION,LEVEL,SHORT ANSWER,RESOURCE
+How can we make observable applications?,A2,"Observability is the ability to measure the internal state of a system.",https://habr.com/en/companies/otus/articles/1031290/
+--WebAppBoundary--
+
+###
+
+### Subscribe to import progress (Server-Sent Events)
+GET http://localhost:8080/api/v1/orchestrator/import/subscribe/3f2504e0-4f89-11d3-9a0c-0305e82c3301
+Accept: text/event-stream
+Cookie: SESSION=<SESSION_COOKIE_VALUE>
+
+###
