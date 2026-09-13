@@ -1,4 +1,4 @@
 #!/bin/sh
 
-docker-compose down --remove-orphans
-docker-compose -f ./_03_all_services.yaml --env-file ./env up
+docker-compose -f ./docker-compose-full.yml down --remove-orphans
+docker-compose -f ./docker-compose-full.yml --env-file ./env up

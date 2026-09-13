@@ -1,0 +1,65 @@
+### ti-ai-orchestrator-api — direct call, port 8085
+# NOT reachable through the gateway: these endpoints live under /rest/v1/**, and the
+# gateway only proxies /api/v1/**. Call the service directly when testing standalone.
+
+### Ask a question — answer is produced async and delivered via the SSE subscription below
+POST http://localhost:8085/rest/v1/question?conversationId=c3a1e9f0-1b2d-4a3c-9e21-8f9b3d5a7c11
+Content-Type: application/json
+Accept: application/json
+
+{
+  "question": "What was our total revenue in Q2 2026?"
+}
+
+###
+
+### Subscribe to the answer stream (Server-Sent Events)
+GET http://localhost:8085/rest/v1/sse/subscription/c3a1e9f0-1b2d-4a3c-9e21-8f9b3d5a7c11/10432
+Accept: text/event-stream
+
+###
+
+### Trigger processing for an already-subscribed question
+GET http://localhost:8085/rest/v1/sse/question?conversationId=c3a1e9f0-1b2d-4a3c-9e21-8f9b3d5a7c11&questionId=10432
+Accept: application/json
+
+###
+
+### Send feedback on an answer
+POST http://localhost:8085/rest/v1/feedback?conversationId=c3a1e9f0-1b2d-4a3c-9e21-8f9b3d5a7c11
+Content-Type: application/json
+Accept: application/json
+
+{
+  "questionId": 10432,
+  "feedback": "helpful"
+}
+
+###
+
+### Get list of chats
+GET http://localhost:8085/rest/v1/chats
+Accept: application/json
+
+###
+### Rename a chat
+POST http://localhost:8085/rest/v1/chats/name?conversationId=c3a1e9f0-1b2d-4a3c-9e21-8f9b3d5a7c11
+Content-Type: application/json
+Accept: application/json
+
+{
+  "newName": "Q2 Sales Analysis"
+}
+
+###
+
+### Delete a chat
+DELETE http://localhost:8085/rest/v1/chats?conversationId=c3a1e9f0-1b2d-4a3c-9e21-8f9b3d5a7c11
+
+###
+
+### Version check
+GET http://localhost:8085/rest/v1/version
+Accept: text/plain
+
+###

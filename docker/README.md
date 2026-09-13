@@ -93,3 +93,10 @@ where `run-compose.sh` executes the following command
 `docker compose -f docker-compose-full.yaml --env-file env up`
 
 
+3. Stop running docker compose
+for example, _04_knowledge_postgres.yaml
+```bash
+docker compose -f _04_knowledge_postgres.yaml down --remove-orphans -v
+docker compose -f _05_assistant_postgres.yaml down --remove-orphans -v
+docker compose -f _05_document_postgres.yaml down --remove-orphans -v
+```

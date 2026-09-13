@@ -1,0 +1,24 @@
+### ti-import-worker — direct call, port 8083
+# NOT reachable through the gateway: this endpoint lives under /rest/v1/**, and the
+# gateway (GatewayController) only proxies /api/v1/**. Call the service directly
+# when testing standalone.
+
+### Upload a CSV/Excel file of questions for import
+POST http://localhost:8083/rest/v1/import
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="questions.csv"
+Content-Type: text/csv
+
+QUESTION,LEVEL,SHORT ANSWER,RESOURCE
+How can we make observable applications?,A2,"Observability is the ability to measure the internal state of a system.",https://habr.com/en/companies/otus/articles/1031290/
+--WebAppBoundary--
+
+###
+
+### Version check
+GET http://localhost:8083/rest/v1/version
+Accept: text/plain
+
+###

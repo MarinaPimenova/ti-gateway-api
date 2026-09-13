@@ -13,9 +13,34 @@ services:
       - knowledge-db-data:/var/lib/postgresql/data
     networks:
       - knowledge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KNOWLEDGE_USER:-knowledge_user} -d ${KNOWLEDGE_DB_NAME:-knowledge_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ti-knowledge-liquibase:
+    image: mnpma/liquibase-pg:5.0
+    container_name: ti-knowledge-liquibase
+    volumes:
+      # Relative path targeting a directory outside the current project root
+      - ../../ti-knowledge-db/resources/liquibase:/liquibase/changelog
+    networks:
+      - knowledge-network
+    command:
+      - --url=jdbc:postgresql://ti-knowledge-db:5432/${KNOWLEDGE_DB_NAME:-knowledge_db}
+      - --username=${KNOWLEDGE_USER:-knowledge_user}
+      - --password=${KNOWLEDGE_PASSWORD:-qwerty}
+      - --changeLogFile=liquibase-changelog.xml
+      - --contexts=dev
+      - update
+    depends_on:
+      ti-knowledge-db:
+        condition: service_healthy
 
 networks:
   knowledge-network:
     name: knowledge-network
+
 volumes:
   knowledge-db-data:

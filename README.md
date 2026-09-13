@@ -1,12 +1,33 @@
 # Training Project - Training Internal (TI) Knowledge Platform
 
+## Table of Contents
+
+- [Goal](#goal)
+- [Learning Objectives](#learning-objectives)
+- [Architecture](#architecture)
+- [Microservices](#microservices) / [Databases](#databases)
+- [Communication](#communication) / [Database Architecture](#database-architecture)
+- [Security](#security) / [Technology Stack](#technology-stack)
+- [Resilience](#resilience) / [Observability](#observability) / [CI/CD](#cicd)
+- [Local Development](#local-development) / [AWS Deployment](#aws-deployment)
+- [Documentation](#documentation) / [DB Schemas](#knowledge-db-schema)
+- **[Run Locally as a Standalone Service](#run-locally-as-a-standalone-service)**
+
 ## Goal
 
 Build a production-like cloud-native microservices application that demonstrates modern Java 
 and Spring development practices commonly used in enterprise environments.
 
-The application is an **Internal Knowledge Management System** designed to store, organize, import, 
+The application is a **Training Internal Knowledge Management Platform* designed to store, organize, import, 
 and export technical interview questions, answers, learning resources, and code examples.
+The _TI Knowledge platform_ provides AI Chatbot that orchestrates **2 AI Agents**:
+- `ti-document-agent` is a Spring Boot application that provides an intelligent document processing
+and question-answering system. The main specialities of the Document Agent are: 
+  1) generate questions and answers for a technical interview and store results in the Knowledge Database, 
+  2) and the second one is to answer on users questions based on the uploaded resources using semantic search mechanism.
+It integrates with AI models (OpenAI and Mistral AI) and uses vector stores for semantic search across documents
+  to deliver context-aware answers.
+- `ti-sql-agent` - provides answers on users questions dynamically generating the SQL queries based on the Knowledge Database schema and based on the information stored in the Knowledge Database.
 
 The primary purpose of this project is educational. 
 It provides hands-on experience with modern backend development, frontend development, 
@@ -21,6 +42,7 @@ After completing this project you will have practical experience with:
 
 - Java 21: Collections, Streams, Optional, Records, Pattern Matching, Virtual Threads
 - Spring Boot 4: Spring Data JPA, Spring Security, Exception Handling
+- Spring AI 2.0.1, ETL pipeline
 - React, Vite, Node.js
 - PostgreSQL: CTE, Liquibase
 - Event-driven Architecture, RabbitMQ
@@ -41,7 +63,6 @@ The platform follows:
 
 - Microservices Architecture
 - API Gateway + BFF Patterns
-- Database per Service
 - Event-Driven Architecture
 - Asynchronous Processing
 - Stateless Services
@@ -313,6 +334,36 @@ Benefits:
 * Independent evolution
 * Better scalability
 
+To support the applying liquibase scripts mechanism to databases the following image was built
+and pushed to https://hub.docker.com/repositories/mnpma :
+
+
+The image contains:
+
+- Liquibase 5.0.0
+- Java 21
+- PostgreSQL Liquibase extension
+
+here is the steps how it was built:
+```bash
+git clone https://github.com/MarinaPimenova/ti-knowledge-db
+
+cd ti-knowledge-db/docker/liquibase-dockerfile-to-image
+
+docker build -t mnpma/liquibase-pg:5.0 .
+```
+push this to Docker Hub. If you haven’t logged into the Docker Hub
+via your command line, you must do this now, and enter your username and password:
+```bash
+docker login
+# Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
+Username:
+Password:
+#Login Succeeded
+
+docker push mnpma/liquibase-pg:5.0 
+```
+
 ---
 
 # Security
@@ -353,6 +404,35 @@ See:
 
 * `docs/_03_SECURITY.md`
 
+---
+## AI Chatbot Architecture
+
+### Component Responsibilities
+
+1. **Routing Agent** (`QuestionRouter`):
+    - Analyzes user intent using LLM
+    - Returns JSON with confidence score and target agents
+    - Routes to one or multiple agents based on intent
+
+2. **Agent Executors** (`AIAgentsWorkflow`):
+    - Invokes selected agents in parallel
+    - Manages timeouts and error handling
+    - Implements first-valid response strategy with grace period
+
+3. **Agent Nodes** (`AgentRegistry`):
+    - Encapsulate individual agent logic
+    - Manage tool bindings for each agent
+    - Execute specialized prompts
+
+4. **SSE Service** (`SseService`):
+    - Manages Server-Sent Events connections
+    - Streams real-time updates to clients
+    - Handles client disconnections and timeouts
+
+5. **Conversation Service** (`ConversationService`):
+    - Persists conversations to database
+    - Manages conversation history and context windows
+    - Handles conversation-level operations
 ---
 
 # Technology Stack
@@ -856,4 +936,86 @@ erDiagram
     QUESTION ||--o{ NLP2SQL_RESULT : "question_id, ON DELETE CASCADE"
 ```
 
+---
 
+# Run Locally as a Standalone Service
+
+This section explains how to run `ti-gateway-api` on your host machine while its dependencies
+(databases, RabbitMQ, backend microservices) run in Docker, and how to exercise the platform's
+functionality using the `.http` files under [`http/`](http).
+
+## Prerequisites
+- **Java**: OpenJDK 21 or later
+- **Maven**: 3.9.x or later
+- Node.js latest
+
+## Clone All Required Repositories
+
+```bash
+# Create a workspace directory
+mkdir ti-workspace && cd ti-workspace
+
+# Clone all repositories
+git clone https://github.com/MarinaPimenova/ti-ai-chatbot-ui
+git clone https://github.com/MarinaPimenova/ti-ai-question-ui
+git clone https://github.com/MarinaPimenova/ti-import-worker
+git clone https://github.com/MarinaPimenova/ti-export-api
+git clone https://github.com/MarinaPimenova/ti-document-agent
+git clone https://github.com/MarinaPimenova/ti-document-worker
+git clone https://github.com/MarinaPimenova/ti-orchestrator-api
+git clone https://github.com/MarinaPimenova/ti-ai-orchestrator-api
+git clone https://github.com/MarinaPimenova/ti-knowledge-api
+git clone https://github.com/MarinaPimenova/ti-gateway-api
+git clone https://github.com/MarinaPimenova/ti-knowledge-ui
+git clone https://github.com/MarinaPimenova/ti-knowledge-db
+git clone https://github.com/MarinaPimenova/ti-assistant-db
+git clone https://github.com/MarinaPimenova/ti-document-db
+git clone https://github.com/MarinaPimenova/ti-sql-agent
+
+```
+
+## 1. Choose a Docker Compose profile
+
+All compose files live under [`docker/`](docker). Copy `docker/env.example` to `docker/env` and
+fill in the **required** values (`OKTA_*`, `ADMINS`, `OPEN_AI_*`) before starting anything.
+
+| Profile | Command (from `docker/`) | What runs in Docker | What you run locally |
+|---|---|---|---|
+| **Infra only** | `docker compose -f docker-compose-infra.yml --env-file env up -d` | Redis, RabbitMQ, `ti-knowledge-db`, `ti-document-db`, `ti-assistant-db`, Prometheus, Loki, Zipkin, Grafana | `ti-gateway-api` + any backend service(s) you're iterating on, started from IntelliJ IDEA |
+| **Full stack** | `./run-compose.sh` (wraps `docker compose -f docker-compose-full.yml --env-file env up`) | Every service in the diagram above — UIs, gateway, all APIs/workers/agents, and infra | Nothing — pure black-box functional testing |
+| **Individual infra pieces** | e.g. `docker compose -f _04_knowledge_postgres.yaml up` | One service at a time | Everything else |
+
+`run-compose.sh` requires the local images to be built first (`ti-gateway-local`,
+`ti-knowledge-local`, `ti-ui-local`, etc. — see `docker/README.md` and `k8s/build-all-target-and-image.sh`).
+
+## 2. Verify the gateway is up
+
+```text
+GET http://localhost:8080/rest/v1/version
+Accept: text/plain
+```
+```text
+GET http://localhost:8080/actuator/health
+Accept: application/json
+```
+See [`http/gateway.http`](http/gateway.http) and [`http/version.http`](http/version.http).
+
+## 3. Authenticate (required for any `/api/v1/**` call)
+
+`/api/**` requires an authenticated session (`SecurityConfig`); the gateway does **not** accept a
+client-supplied JWT — it injects its own OIDC id token when forwarding to backends. To test
+proxied endpoints:
+
+1. Open `http://localhost:8080` in a browser and log in through Okta.
+2. Open dev tools → Application/Storage → Cookies, copy the `SESSION` cookie value.
+3. Paste it into the `Cookie: SESSION=<SESSION_COOKIE_VALUE>` header in the `.http` files below.
+
+## 4. Known gateway routing limitation
+
+`GatewayController` proxies only paths under `/api/v1/**`, and forwards them downstream **with
+the `/api/v1` prefix preserved**, stripping just the `/{service}` segment
+(`DownstreamService.getDownstreamServiceUrl()`). This means a backend is only reachable through
+the gateway if its own controllers are mapped under `/api/v1/**`. 
+`GatewayExtController` proxies only paths under `/rest/v1/**`, and forwards them downstream **with
+the `/rest/v1` prefix preserved**, stripping just the `/{service}` segment
+(`DownstreamService.getDownstreamServiceUrl()`).

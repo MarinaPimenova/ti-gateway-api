@@ -50,7 +50,7 @@ public class GatewayController {
      * This MUST bypass the generic forwardRequestGet() because SSE responses are long-lived and
      * cannot be buffered into a String. We proxy the downstream SSE stream and re-emit frames.
      */
-    @GetMapping(value = "/ai-assistant/sse/subscription/{conversationId}/{questionId}",
+    @GetMapping(value = "/ai-orchestrator/sse/subscription/{conversationId}/{questionId}",
             produces = TEXT_EVENT_STREAM_VALUE)
     public SseEmitter proxySseSubscription(
             HttpServletRequest request,
@@ -80,7 +80,7 @@ public class GatewayController {
      * This endpoint is not itself a stream; it just triggers the orchestration and returns 200 OK.
      * Safe to forward through the normal exchange().
      */
-    @GetMapping(value = "/ai-assistant/sse/question", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/ai-orchestrator/sse/question", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<?> proxySseQuestionTrigger(
             HttpServletRequest request,
             @RequestParam("conversationId") String conversationId,
@@ -130,7 +130,7 @@ public class GatewayController {
     /**
      * Catch-all GET forwarder.
      * NOTE: The explicit SSE mappings above will win for the SSE routes, so this will not be used
-     * for /api/v1/ai-assistant/sse/subscription/** or /api/v1/ai-assistant/sse/question
+     * for /api/v1/ai-orchestrator/sse/subscription/** or /api/v1/ai-orchestrator/sse/question
      */
     @GetMapping(value = "/**")
     public ResponseEntity<?> forwardRequestGet(
