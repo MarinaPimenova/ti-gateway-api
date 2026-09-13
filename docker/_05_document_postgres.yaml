@@ -14,6 +14,24 @@ services:
     networks:
       - knowledge-network
 
+  ti-document-liquibase:
+    image: mnpma/liquibase-pg:5.0
+    container_name: ti-document-liquibase
+    volumes:
+      # Relative path targeting a directory outside the current project root
+      - ../../ti-document-db/resources/liquibase:/liquibase/changelog
+    networks:
+      - knowledge-network
+    command:
+      - --url=jdbc:postgresql://ti-document-db:5432/${DOCUMENT_DB_NAME:-document_db}
+      - --username=${DOCUMENT_USER:-postgres}
+      - --password=${DOCUMENT_PASSWORD:-postgres}
+      - --changeLogFile=liquibase-changelog.xml
+      - --contexts=dev
+      - update
+    depends_on:
+      - ti-document-db
+
 networks:
   knowledge-network:
     name: knowledge-network

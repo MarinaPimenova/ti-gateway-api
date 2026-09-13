@@ -6,7 +6,7 @@
 - Microservice: `gateway`
 
 Notes:
-- `GatewayExtController` (`src/main/java/com/wk/ti/controller/GatewayExtController.java`) declares a forwarding endpoint, but its `@RestController` and `@RequestMapping("/rest/v1/**")` annotations are commented out in source, so the class is not an active Spring bean/controller. It is excluded from this contract.
+- `GatewayExtController` (`../../src/main/java/com/wk/ti/controller/GatewayExtController.java`) declares a forwarding endpoint, but its `@RestController` and `@RequestMapping("/rest/v1/**")` annotations are commented out in source, so the class is not an active Spring bean/controller. It is excluded from this contract.
 - `RestExceptionHandler` is annotated `@RestControllerAdvice` (not `@RestController`) and only contains `@ExceptionHandler` methods, not request-mapped endpoints, so it is excluded from this contract.
 - `GatewayController` acts as a generic reverse-proxy: most of its endpoints forward the incoming request to a downstream service resolved at runtime (`DownstreamProtectUrlService`) and return whatever the downstream service returned (via `RestTemplateService.exchange`, which itself may return a parsed JSON body, a raw string, binary bytes, or an error DTO depending on the downstream response). For these endpoints the actual response body/status is genuinely dynamic and cannot be determined from this repository's source code alone.
 

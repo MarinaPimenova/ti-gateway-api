@@ -16,6 +16,25 @@ services:
     networks:
       - knowledge-network
 
+#  ti-assistant-liquibase:
+#    image: mnpma/liquibase-pg:5.0
+#    container_name: ti-assistant-liquibase
+#    volumes:
+#      # Relative path targeting a directory outside the current project root
+#      - ../../ti-assistant-db/resources/liquibase:/liquibase/changelog
+#    networks:
+#      - knowledge-network
+#    command:
+#      - --url=jdbc:postgresql://ti-assistant-db:5432/${ASSISTANT_DB_NAME:-assistant_db}
+#      - --username=${ASSISTANT_USER:-assistant_user}
+#      - --password=${ASSISTANT_PASSWORD:-qwerty}
+#      - --changeLogFile=liquibase-changelog.xml
+#      - --contexts=dev
+#      - update
+#    depends_on:
+#      ti-assistant-db:
+#        condition: service_healthy
+
 networks:
   knowledge-network:
     name: knowledge-network
